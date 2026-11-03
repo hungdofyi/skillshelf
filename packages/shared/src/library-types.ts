@@ -112,8 +112,8 @@ export interface SkillSummary {
   lint: LintIssue[];
   /** Where this skill is symlinked for Claude Code (tracked in .data/installs.json). */
   installs?: Array<{ target: 'user' | 'project'; linkPath: string }>;
-  /** Pass rate of the latest eval run per arm, if any run exists. */
-  latestRun?: { id: string; finishedAt?: string; passRate: Partial<Record<EvalArm, number>> };
+  /** Summary of the latest finished eval run, if any run exists. */
+  latestRun?: { id: string; finishedAt?: string; summary: Partial<Record<EvalArm, EvalArmSummary>> };
 }
 
 /** One generated summary under books/<slug>/summaries/, described by its frontmatter. */
@@ -182,16 +182,31 @@ export interface EvalCaseArmResult {
   judgeSummary?: string;
 }
 
+/** A count out of a total, e.g. 34 of 44 checks. */
+export interface Tally {
+  passed: number;
+  total: number;
+}
+
 /**
- * Per-arm results. `cases`, `passRate` and `meanScore` count only graded should-trigger cases,
- * so with_skill and baseline compare the same set; near-miss cases count only in triggerAccuracy.
+ * Per-arm results. `cases`, `passRate`, `meanScore` and `checks` count only graded should-trigger cases,
+ * so with_skill and baseline compare the same set; near-miss cases count only in the trigger numbers.
  */
 export interface EvalArmSummary {
   cases: number;
+  /** Share of cases where every expectation passed. Strict: one missed check fails the case. */
   passRate: number;
   meanScore: number;
+  /** Expectations ("checks") passed out of those graded. */
+  checks: Tally;
   /** with_skill only: share of all cases where triggering was right (fired on should_trigger, stayed quiet on near-miss). */
   triggerAccuracy?: number;
+  /** with_skill only: should-trigger cases where the skill was used. */
+  usedWhenNeeded?: Tally;
+  /** with_skill only: near-miss cases where the skill was left alone. */
+  skippedWhenNotNeeded?: Tally;
+  /** with_skill only, when the baseline ran: cases where the skill's answer scored higher, the same or lower. */
+  vsBaseline?: { better: number; tied: number; worse: number };
   meanDurationMs?: number;
 }
 

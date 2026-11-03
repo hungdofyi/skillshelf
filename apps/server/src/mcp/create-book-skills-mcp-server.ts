@@ -111,7 +111,7 @@ export function createBookSkillsMcpServer(deps: BookSkillsMcpDeps): McpServer {
           description: s.description,
           source_books: s.frontmatter.metadata?.source ?? null,
           goal: s.frontmatter.metadata?.goal ?? null,
-          eval_pass_rate: s.latestRun?.passRate ?? null,
+          eval_pass_rate: s.latestRun ? Object.fromEntries(Object.entries(s.latestRun.summary).map(([arm, x]) => [arm, x?.passRate])) : null,
         }));
         return text(JSON.stringify({ skills: list }, null, 2), { skills: list });
       }),

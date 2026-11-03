@@ -17,9 +17,38 @@ describe('summarizeRun', () => {
       r('3', 'baseline', 'skipped', 0),
     ];
     const s = summarizeRun(results, { '1': true, '2': true, '3': false, '4': true });
-    // near-miss case 3 is excluded from passRate/meanScore (only triggerAccuracy sees it)
-    expect(s.with_skill).toEqual({ cases: 2, passRate: 0.5, meanScore: 0.75, triggerAccuracy: 0.667, meanDurationMs: 400 });
-    expect(s.baseline).toEqual({ cases: 2, passRate: 0, meanScore: 0.125 });
+    // near-miss case 3 is excluded from passRate/meanScore/checks (only the trigger numbers see it)
+    expect(s.with_skill).toEqual({
+      cases: 2, passRate: 0.5, meanScore: 0.75, checks: { passed: 0, total: 0 }, triggerAccuracy: 0.667,
+      usedWhenNeeded: { passed: 1, total: 2 }, skippedWhenNotNeeded: { passed: 1, total: 1 },
+      vsBaseline: { better: 2, tied: 0, worse: 0 }, meanDurationMs: 400,
+    });
+    expect(s.baseline).toEqual({ cases: 2, passRate: 0, meanScore: 0.125, checks: { passed: 0, total: 0 } });
+  });
+
+  const exp = (...passed: boolean[]) => passed.map((p, i) => ({ text: `check ${i}`, passed: p, evidence: '' }));
+  it('counts checks per arm and compares each case with the baseline', () => {
+    const results = [
+      r('1', 'with_skill', 'passed', 1, { triggered: true, expectations: exp(true, true) }),
+      r('1', 'baseline', 'failed', 0.5, { expectations: exp(true, false) }),
+      r('2', 'with_skill', 'failed', 0.5, { triggered: true, expectations: exp(true, false) }),
+      r('2', 'baseline', 'failed', 0.5, { expectations: exp(false, true) }),
+      r('3', 'with_skill', 'failed', 0, { triggered: true, expectations: exp(false, false) }),
+      r('3', 'baseline', 'failed', 0.5, { expectations: exp(true, false) }),
+    ];
+    const s = summarizeRun(results, {});
+    expect(s.with_skill).toMatchObject({ checks: { passed: 3, total: 6 }, vsBaseline: { better: 1, tied: 1, worse: 1 }, passRate: 0.333 });
+    expect(s.baseline).toMatchObject({ checks: { passed: 3, total: 6 } });
+  });
+  it('reads near-miss cases back from the results when no trigger map is given', () => {
+    const results = [
+      r('1', 'with_skill', 'passed', 1, { triggered: true, expectations: exp(true) }),
+      r('1', 'baseline', 'failed', 0, { expectations: exp(false) }),
+      r('9', 'with_skill', 'passed', 1, { triggered: false }), // near miss: decided by trigger, no expectations
+      r('9', 'baseline', 'skipped', 0),
+    ];
+    expect(summarizeRun(results)).toEqual(summarizeRun(results, { '1': true, '9': false }));
+    expect(summarizeRun(results).with_skill).toMatchObject({ cases: 1, skippedWhenNotNeeded: { passed: 1, total: 1 }, vsBaseline: { better: 1, tied: 0, worse: 0 } });
   });
   it('omits arms with no results', () => {
     expect(summarizeRun([r('1', 'with_skill', 'passed', 1, { triggered: true })], {})).toMatchObject({ with_skill: { passRate: 1, triggerAccuracy: 1 } });

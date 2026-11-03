@@ -4,7 +4,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import type { Effort, Job, SkillSummary } from '@b2s/shared';
 import { keys, upsertJob, useClaudeStatus, useReviseSkill, useRuns } from '../../api/queries';
 import { openJob } from '../../lib/ui-store';
-import { formatTime, formatPercent } from '../../lib/format';
+import { formatTime } from '../../lib/format';
+import { useLocationState } from '../../lib/location-state';
 import { Button } from '../../components/ui/button';
 import { ControlSlot, Field, Select, Textarea } from '../../components/ui/misc';
 import { EFFORT_DEFAULTS, EffortSelect } from '../../components/skill/effort-select';
@@ -17,7 +18,8 @@ export function ReviseTab({ skill }: { skill: SkillSummary }) {
   const runs = useRuns(skill.name);
   const revise = useReviseSkill(skill.name);
   const [feedback, setFeedback] = useState('');
-  const [runId, setRunId] = useState('');
+  // "Revise using these" on an eval run opens this tab with that run picked.
+  const [runId, setRunId] = useState(useLocationState().run ?? '');
   const [model, setModel] = useState('sonnet');
   const [effort, setEffort] = useState<Effort>(EFFORT_DEFAULTS.revise);
   const canSubmit = !!claude.data?.ready && (!!feedback.trim() || !!runId) && !revise.isPending;
@@ -35,7 +37,7 @@ export function ReviseTab({ skill }: { skill: SkillSummary }) {
       <Field label="Include failures from an eval run (optional)" htmlFor="revise-run">
         <Select id="revise-run" value={runId} onChange={(e) => setRunId(e.target.value)}>
           <option value="">None</option>
-          {runs.data?.map((r) => <option key={r.id} value={r.id}>{r.id} · {formatTime(r.startedAt)}{r.summary.with_skill ? ` · ${formatPercent(r.summary.with_skill.passRate)} pass` : ''}</option>)}
+          {runs.data?.map((r) => <option key={r.id} value={r.id}>{r.id} · {formatTime(r.startedAt)}{r.summary.with_skill?.checks.total ? ` · ${r.summary.with_skill.checks.total - r.summary.with_skill.checks.passed} missed checks` : ''}</option>)}
         </Select>
       </Field>
       <div className="flex flex-wrap items-start justify-between gap-4">

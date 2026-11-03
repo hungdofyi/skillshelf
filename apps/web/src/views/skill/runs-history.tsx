@@ -1,8 +1,8 @@
 import { useRuns } from '../../api/queries';
 import { navigate } from '../../lib/location-state';
-import { formatPercent, formatTime } from '../../lib/format';
+import { formatTime } from '../../lib/format';
 import { Pill, SectionTitle } from '../../components/ui/misc';
-import { RunStatusPill } from '../eval/eval-bits';
+import { RunStatusPill, runHeadline, tallyText } from '../eval/eval-bits';
 
 export function RunsHistory({ skill }: { skill: string }) {
   const { data, isPending, error } = useRuns(skill);
@@ -21,7 +21,8 @@ export function RunsHistory({ skill }: { skill: string }) {
                 <RunStatusPill status={r.status} />
                 <span className="text-muted">{formatTime(r.startedAt)}</span>
                 <span className="flex-1" />
-                {r.arms.map((a) => r.summary[a] && <Pill key={a} tone={a === 'with_skill' ? 'accent' : 'neutral'}>{a === 'with_skill' ? 'With skill' : 'Baseline'} <span className="tnum">{formatPercent(r.summary[a]!.passRate)}</span></Pill>)}
+                {runHeadline(r.summary) && <Pill tone="accent"><span className="tnum">{runHeadline(r.summary)}</span></Pill>}
+                {r.summary.with_skill?.vsBaseline && !!r.summary.with_skill.checks.total && <Pill><span className="tnum">{tallyText(r.summary.with_skill.checks)}</span> checks</Pill>}
               </button>
             </li>
           ))}

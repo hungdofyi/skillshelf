@@ -57,7 +57,7 @@ describe('skills, evals and claude routes', () => {
     const full = (await (await call('GET', `/api/evals/auditor/runs/${run.runId}`)).json()) as EvalRun;
     expect(full.results.length).toBe(6);
     expect((await call('GET', '/api/evals/auditor/runs/nope')).status).toBe(404);
-    expect(((await (await call('GET', '/api/skills/auditor')).json()) as SkillSummary).latestRun?.passRate).toMatchObject({ with_skill: 1, baseline: 0 });
+    expect(((await (await call('GET', '/api/skills/auditor')).json()) as SkillSummary).latestRun?.summary).toMatchObject({ with_skill: { passRate: 1 }, baseline: { passRate: 0 } });
 
     const rev = await call('POST', '/api/skills/auditor/revise', { feedback: 'More', evalRunId: run.runId });
     expect(rev.status).toBe(200);

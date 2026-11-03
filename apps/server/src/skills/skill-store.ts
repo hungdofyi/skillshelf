@@ -5,8 +5,9 @@
 import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
-import { type EvalFile, type EvalRun, type SkillFrontmatter, type SkillSummary, SKILL_NAME_MAX, SKILL_NAME_PATTERN } from '@b2s/shared';
+import { type EvalFile, type SkillFrontmatter, type SkillSummary, SKILL_NAME_MAX, SKILL_NAME_PATTERN } from '@b2s/shared';
 import { HttpError } from '../http-error.js';
+import { readEvalRun } from '../evals/eval-paths.js';
 import { parseFrontmatter } from '../library/frontmatter.js';
 import { resolveLibraryPath } from '../library/library-paths.js';
 import { lintSkill } from './skill-lint.js';
@@ -120,11 +121,9 @@ export class SkillStore {
     const ids = readdirSync(runsDir).filter((d) => existsSync(path.join(runsDir, d, 'run.json'))).sort().reverse();
     for (const id of ids) {
       try {
-        const run = JSON.parse(readFileSync(path.join(runsDir, id, 'run.json'), 'utf8')) as EvalRun;
+        const run = readEvalRun(this.libraryDir, name, id);
         if (run.status !== 'succeeded') continue;
-        const passRate: NonNullable<SkillSummary['latestRun']>['passRate'] = {};
-        for (const [arm, s] of Object.entries(run.summary)) if (s) passRate[arm as keyof typeof passRate] = s.passRate;
-        return { id: run.id, finishedAt: run.finishedAt, passRate };
+        return { id: run.id, finishedAt: run.finishedAt, summary: run.summary };
       } catch {
         continue;
       }

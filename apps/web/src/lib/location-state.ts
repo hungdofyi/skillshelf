@@ -64,16 +64,18 @@ const getSearch = () => window.location.search;
 export interface LocationState {
   path: string;
   tab: string | null;
+  /** An eval run to preselect (the Revise tab uses it to pick the run's failed cases). */
+  run: string | null;
 }
 
 export function useLocationState(): LocationState {
   const search = useSyncExternalStore(subscribe, getSearch, () => '');
   const sp = new URLSearchParams(search);
-  return { path: sp.get('path') ?? '', tab: sp.get('tab') };
+  return { path: sp.get('path') ?? '', tab: sp.get('tab'), run: sp.get('run') };
 }
 
 /** Navigate to a library path (optionally a tab). Returns false if the user declined to discard edits. */
-export function navigate(path: string, opts?: { tab?: string; replace?: boolean; force?: boolean }): boolean {
+export function navigate(path: string, opts?: { tab?: string; run?: string; replace?: boolean; force?: boolean }): boolean {
   if (!opts?.force && isDirty() && !confirmDiscard()) return false;
   if (isDirty()) {
     dirtySources.clear();
@@ -82,6 +84,7 @@ export function navigate(path: string, opts?: { tab?: string; replace?: boolean;
   const sp = new URLSearchParams();
   if (path) sp.set('path', path);
   if (opts?.tab) sp.set('tab', opts.tab);
+  if (opts?.run) sp.set('run', opts.run);
   const url = sp.size ? `/?${sp.toString()}` : '/';
   if (opts?.replace) window.history.replaceState(null, '', url);
   else window.history.pushState(null, '', url);

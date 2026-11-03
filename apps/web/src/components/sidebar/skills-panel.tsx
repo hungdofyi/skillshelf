@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Wand2, Zap } from 'lucide-react';
 import { useSkills } from '../../api/queries';
-import { formatPercent } from '../../lib/format';
 import { navigate } from '../../lib/location-state';
 import { openCreateSkill } from '../../lib/ui-store';
 import { Button } from '../ui/button';
 import { SidebarFilter, SidebarHeader } from '../shell/sidebar-header';
 import { isWithin, SidebarListItem, SidebarNote } from './sidebar-list-item';
+import { runHeadline } from '../../views/eval/eval-bits';
 
 /** Skills with lint state and the latest with-skill pass rate. */
 export function SkillsPanel({ activePath }: { activePath: string }) {
@@ -29,7 +29,7 @@ export function SkillsPanel({ activePath }: { activePath: string }) {
           {shown?.map((s) => {
             const errors = s.lint.filter((i) => i.level === 'error').length;
             const warnings = s.lint.filter((i) => i.level === 'warning').length;
-            const rate = s.latestRun?.passRate.with_skill;
+            const headline = s.latestRun && runHeadline(s.latestRun.summary);
             return (
               <SidebarListItem
                 key={s.name}
@@ -40,7 +40,7 @@ export function SkillsPanel({ activePath }: { activePath: string }) {
                     {errors > 0 ? <span className="text-danger">{errors} lint error{errors === 1 ? '' : 's'}</span>
                       : warnings > 0 ? <span className="text-warn">{warnings} warning{warnings === 1 ? '' : 's'}</span>
                       : <span>{s.evalCount} eval case{s.evalCount === 1 ? '' : 's'}</span>}
-                    {rate !== undefined && <span className="tnum">· {formatPercent(rate)} pass</span>}
+                    {headline && <span className="tnum">· {headline}</span>}
                   </>
                 }
                 selected={isWithin(activePath, s.path)}

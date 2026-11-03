@@ -3,6 +3,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { type EvalRun, SKILL_NAME_PATTERN } from '@b2s/shared';
 import { HttpError } from '../http-error.js';
+import { withFreshSummary } from './eval-summary.js';
 
 const RUN_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/;
 
@@ -20,7 +21,7 @@ export function readEvalRun(libraryDir: string, skill: string, runId: string): E
   const file = path.join(evalRunDir(libraryDir, skill, runId), 'run.json');
   if (!existsSync(file)) throw new HttpError(404, `Eval run not found: ${skill}/${runId}`);
   try {
-    return JSON.parse(readFileSync(file, 'utf8')) as EvalRun;
+    return withFreshSummary(JSON.parse(readFileSync(file, 'utf8')) as EvalRun);
   } catch {
     throw new HttpError(422, `run.json of ${skill}/${runId} is not valid JSON`);
   }

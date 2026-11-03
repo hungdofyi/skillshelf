@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { FlaskConical } from 'lucide-react';
 import { useRuns, useSkills } from '../../api/queries';
-import { formatPercent, formatTime } from '../../lib/format';
+import { formatTime } from '../../lib/format';
 import { navigate } from '../../lib/location-state';
-import { RunStatusPill } from '../../views/eval/eval-bits';
+import { RunStatusPill, runHeadline } from '../../views/eval/eval-bits';
 import { SidebarFilter, SidebarHeader } from '../shell/sidebar-header';
 import { isWithin, SidebarListItem, SidebarNote } from './sidebar-list-item';
 
@@ -17,13 +17,13 @@ function SkillRuns({ skill, query, activePath }: { skill: string; query: string;
       <ul>
         {shown.map((r) => {
           const path = `evals/${skill}/${r.id}`;
-          const rate = r.summary.with_skill?.passRate;
+          const headline = runHeadline(r.summary);
           return (
             <SidebarListItem
               key={r.id}
               icon={<FlaskConical size={15} />}
               title={formatTime(r.startedAt)}
-              meta={<><RunStatusPill status={r.status} />{rate !== undefined && <span className="tnum">{formatPercent(rate)} with skill</span>}</>}
+              meta={<><RunStatusPill status={r.status} />{headline && <span className="tnum">{headline}</span>}</>}
               selected={isWithin(activePath, path)}
               onClick={() => navigate(path)}
             />
