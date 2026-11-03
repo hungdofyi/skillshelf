@@ -7,7 +7,7 @@ import { navigate } from '../../lib/location-state';
 import { openJob } from '../../lib/ui-store';
 import { Button } from '../../components/ui/button';
 import { ConfirmDialog } from '../../components/ui/dialog';
-import { Checkbox, Field, Input, Select, SectionTitle } from '../../components/ui/misc';
+import { Checkbox, ControlSlot, Field, Input, Select, SectionTitle } from '../../components/ui/misc';
 import { EFFORT_DEFAULTS, EffortSelect } from '../../components/skill/effort-select';
 import { ClaudeStatusNote } from '../../components/skill/claude-status-note';
 
@@ -53,7 +53,7 @@ export function RunEvalsPanel({ skill, caseCount, blockedReason }: { skill: stri
           <Field label="Model" htmlFor="eval-model"><Select id="eval-model" value={model} onChange={(e) => setModel(e.target.value)}><option value="sonnet">Sonnet</option><option value="opus">Opus</option><option value="haiku">Haiku</option></Select></Field>
           <Field label="Concurrency" htmlFor="eval-conc"><Input id="eval-conc" type="number" min={1} max={MAX_EVAL_CONCURRENCY} value={concurrency} className="w-20" onChange={(e) => setConcurrency(Math.max(1, Math.min(MAX_EVAL_CONCURRENCY, Number(e.target.value) || 1)))} /></Field>
           <EffortSelect id="eval-effort" value={effort} onChange={setEffort} />
-          <Button className="mt-[22px]" variant="primary" icon={<FlaskConical size={14} />} disabled={!!disabledReason} title={disabledReason ?? undefined} onClick={() => setConfirm(true)}>Run evals</Button>
+          <ControlSlot><Button variant="primary" icon={<FlaskConical size={14} />} disabled={!!disabledReason} title={disabledReason ?? undefined} onClick={() => setConfirm(true)}>Run evals</Button></ControlSlot>
         </div>
         {disabledReason && <p className="text-caption text-faint">{disabledReason}</p>}
       </div>

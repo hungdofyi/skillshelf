@@ -1,4 +1,4 @@
-import { useDeferredValue, useMemo, useState, type ReactNode } from 'react';
+import { useDeferredValue, useMemo, type ReactNode } from 'react';
 import clsx from 'clsx';
 import { Check, RotateCcw, Save, Wand2 } from 'lucide-react';
 import { Button } from '../ui/button';
@@ -9,6 +9,8 @@ import { useFileDraft } from './use-file-draft';
 import { formatBytes } from '../../lib/format';
 import { shortcutLabels } from '../../lib/use-global-shortcuts';
 import { rawUrl } from '../../api/client';
+import { setUi, useUi } from '../../lib/ui-store';
+import { SideNavList, SideNavMenu, type SideNav } from './side-nav';
 
 type Mode = 'preview' | 'edit' | 'split';
 export type PreviewKind = 'markdown' | 'json' | 'none';
@@ -45,9 +47,18 @@ function JsonPretty({ text }: { text: string }) {
  * `leading` fills the start of the toolbar (the file view puts its breadcrumb there); `inspector` hands
  * the frontmatter to the right-hand inspector.
  */
-export function FileEditor({ path, kind, leading, inspector }: { path: string; kind: PreviewKind; leading?: ReactNode; inspector?: boolean }) {
+/**
+ * One editor instance stays mounted while `path` changes (no key): the toolbar never flickers and the
+ * previous file stays on screen until the next arrives. The view mode is a remembered preference.
+ * `toolbarInColumn` aligns the toolbar with the page column (documents inside a view, e.g. skill tabs);
+ * `sideNav` adds secondary navigation that mirrors the outline (see side-nav.tsx).
+ */
+export function FileEditor({ path, kind, leading, inspector, toolbarInColumn, sideNav }: { path: string; kind: PreviewKind; leading?: ReactNode; inspector?: boolean; toolbarInColumn?: boolean; sideNav?: SideNav }) {
   const language: EditorLanguage = kind === 'markdown' ? 'markdown' : kind === 'json' ? 'json' : 'text';
-  const [mode, setMode] = useState<Mode>(kind === 'none' ? 'edit' : 'preview');
+  const preferred = useUi((s) => s.editorMode);
+  // Non-previewable files only edit; JSON has no split view, so it falls back to its preview.
+  const mode: Mode = kind === 'none' ? 'edit' : kind !== 'markdown' && preferred === 'split' ? 'preview' : preferred;
+  const setMode = (m: Mode) => setUi({ editorMode: m });
   const d = useFileDraft(path, kind === 'json' ? validateJson : undefined);
   const deferred = useDeferredValue(d.text);
   const { data: file, isPending, error } = d.query;
@@ -73,16 +84,20 @@ export function FileEditor({ path, kind, leading, inspector }: { path: string; k
   ];
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <div className="hairline-b flex h-10 shrink-0 items-center gap-3 px-4">
-        {leading && <div className="min-w-0 flex-1">{leading}</div>}
+    // @container: the side nav switches between overlay and toolbar menu at the same pane width as the outline.
+    <div className="@container flex h-full min-h-0 flex-col">
+      <div className="hairline-b flex h-10 shrink-0 items-center">
+        <div className={toolbarInColumn ? 'page-column flex items-center gap-3' : 'flex w-full min-w-0 items-center gap-3 px-4'}>
+        {leading && <div className={toolbarInColumn ? 'shrink-0' : 'min-w-0 flex-1'}>{leading}</div>}
+        {/* Only when the pane is too narrow for the floating list, in every mode alike. */}
+        {sideNav && <div className="shrink-0 @min-[1120px]:hidden"><SideNavMenu nav={sideNav} /></div>}
         {kind !== 'none' && (
           <Segmented label="View mode" value={mode} onChange={setMode} options={modes} />
         )}
         {d.dirty ? <Pill tone="warn">Unsaved</Pill> : <span className="flex shrink-0 items-center gap-1 text-caption text-faint"><Check size={12} aria-hidden />Saved</span>}
         {d.changedOnDisk && <Pill tone="danger">Changed on disk</Pill>}
         {d.validationError && <span className="truncate text-caption text-danger">{d.validationError}</span>}
-        <div className={clsx('flex shrink-0 items-center gap-1.5', !leading && 'ml-auto')}>
+        <div className={clsx('flex shrink-0 items-center gap-1.5', (!leading || toolbarInColumn) && 'ml-auto')}>
           {kind === 'json' && mode !== 'preview' && (
             <Button size="sm" variant="ghost" icon={<Wand2 size={13} />} onClick={() => { try { d.edit(JSON.stringify(JSON.parse(d.text), null, 2) + '\n'); } catch { /* validation message already shown */ } }}>
               Format
@@ -98,12 +113,17 @@ export function FileEditor({ path, kind, leading, inspector }: { path: string; k
             </>
           )}
         </div>
+        </div>
       </div>
-      <div className="min-h-0 flex-1">
+      <div className="relative min-h-0 flex-1">
         {mode === 'preview' && preview}
-        {mode === 'edit' && editor}
+        {/* The list stays mounted in every view mode. */}
+        {sideNav && <SideNavList nav={sideNav} />}
+        {/* Edit uses the same page column as Preview: same left edge, same readable width. */}
+        {mode === 'edit' && <div className="page-column h-full">{editor}</div>}
         {mode === 'split' && (
-          <div className="grid h-full grid-cols-2 divide-x divide-line">
+          // With a side nav, split starts after the floating list (pl-62 = its 24px inset + 208px + 16px) so nothing overlaps.
+          <div className={clsx('grid h-full grid-cols-2 divide-x divide-line', sideNav && '@min-[1120px]:pl-62')}>
             <div className="min-w-0 overflow-hidden">{editor}</div>
             <div className="min-w-0 overflow-hidden">{preview}</div>
           </div>

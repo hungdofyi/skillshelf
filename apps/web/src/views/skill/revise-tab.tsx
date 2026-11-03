@@ -6,7 +6,7 @@ import { keys, upsertJob, useClaudeStatus, useReviseSkill, useRuns } from '../..
 import { openJob } from '../../lib/ui-store';
 import { formatTime, formatPercent } from '../../lib/format';
 import { Button } from '../../components/ui/button';
-import { Field, Select, Textarea } from '../../components/ui/misc';
+import { ControlSlot, Field, Select, Textarea } from '../../components/ui/misc';
 import { EFFORT_DEFAULTS, EffortSelect } from '../../components/skill/effort-select';
 import { ClaudeStatusNote } from '../../components/skill/claude-status-note';
 import { shortcutLabels } from '../../lib/use-global-shortcuts';
@@ -26,7 +26,7 @@ export function ReviseTab({ skill }: { skill: SkillSummary }) {
       onSuccess: ({ job }) => { qc.setQueryData<Job[]>(keys.jobs, (l) => upsertJob(l, job)); setFeedback(''); openJob(job.id); },
     });
   return (
-    <div className="mx-auto w-full max-w-4xl px-8 py-6"><div className="flex max-w-2xl flex-col gap-4">
+    <div className="page-column py-6"><div className="flex flex-col gap-4">
       <p className="text-muted">Tell Claude what to change. It edits SKILL.md and references in place, and keeps a backup of the previous version.</p>
       <ClaudeStatusNote status={claude.data} loading={claude.isPending} />
       <Field label="Feedback" htmlFor="revise-feedback" hint="Be specific: what went wrong, what you expected instead.">
@@ -43,7 +43,7 @@ export function ReviseTab({ skill }: { skill: SkillSummary }) {
           <Field label="Model" htmlFor="revise-model"><Select id="revise-model" value={model} onChange={(e) => setModel(e.target.value)}><option value="sonnet">Sonnet</option><option value="opus">Opus</option><option value="haiku">Haiku</option></Select></Field>
           <EffortSelect id="revise-effort" value={effort} onChange={setEffort} />
         </div>
-        <Button className="mt-[22px]" variant="primary" icon={<PenLine size={14} />} disabled={!canSubmit} loading={revise.isPending} onClick={submit} title={`Revise skill (${shortcutLabels.mod}Enter)`}>Revise skill</Button>
+        <ControlSlot><Button variant="primary" icon={<PenLine size={14} />} disabled={!canSubmit} loading={revise.isPending} onClick={submit} title={`Revise skill (${shortcutLabels.mod}Enter)`}>Revise skill</Button></ControlSlot>
       </div>
     </div></div>
   );

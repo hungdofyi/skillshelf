@@ -33,7 +33,7 @@ export function EvalRunView({ skill, runId }: { skill: string; runId: string }) 
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-8 py-8">
+      <div className="page-column flex flex-col gap-8 py-8">
         <header>
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-heading font-semibold tracking-[-0.015em]">Eval run</h1>

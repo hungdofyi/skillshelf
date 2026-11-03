@@ -171,6 +171,11 @@ body {
 @media (pointer: coarse) {
   input, textarea, select { font-size: 16px; }
 }
+/* Tabs and segmented controls (data-magnetic): no ring after a mouse click, and the keyboard ring is drawn
+   inside the item, so strips that clip vertically (tab bars) can never cut it off. */
+:root[data-input='pointer'] [data-magnetic] :focus-visible { outline: none; }
+[data-magnetic] :focus-visible { outline-offset: -2px; }
+
 .tnum { font-variant-numeric: tabular-nums; }
 /* Images get a 1px inset edge: pure black or white at 10%, never a tinted neutral. */
 .img-outline { outline: 1px solid light-dark(oklch(0 0 0 / 0.1), oklch(1 0 0 / 0.1)); outline-offset: -1px; }
@@ -236,7 +241,7 @@ body {
 .cm-editor .cm-content { padding: 12px 0; caret-color: var(--fg); }
 
 /* Markdown reading face. Book text and its headings are set in the reading serif. */
-.prose-b2s { font-family: var(--font-read); font-size: 16px; line-height: 1.7; max-width: 68ch; color: var(--fg); text-wrap: pretty; }
+.prose-b2s { font-family: var(--font-read); font-size: 16px; line-height: 1.7; max-width: var(--measure); color: var(--fg); text-wrap: pretty; }
 .prose-b2s > :first-child { margin-top: 0; }
 .prose-b2s h1, .prose-b2s h2, .prose-b2s h3, .prose-b2s h4 { font-weight: 700; line-height: 1.2; text-wrap: balance; scroll-margin-top: 16px; position: relative; }
 .prose-b2s h1 { font-size: 1.85rem; margin: 2rem 0 0.75rem; letter-spacing: -0.01em; }
@@ -278,3 +283,11 @@ body {
 .hljs-title, .hljs-section, .hljs-name, .hljs-type { color: var(--fg); font-weight: 600; }
 .hljs-deletion { color: var(--danger); }
 .hljs-meta, .hljs-variable, .hljs-template-variable { color: var(--fg-muted); }
+
+/* One page structure for every document view (book, skill, eval run, folder, Markdown): a centred column of
+   the reading measure (~68ch of the 16px reading face) plus 2rem gutters. A fixed length, not `ch`, so headers,
+   tables, the frontmatter card and prose all resolve to the same width whatever their font. The Markdown
+   outline floats over the pane's right edge and never moves this column. */
+:root { --measure: 38rem; }
+@utility page-column { margin-inline: auto; width: 100%; max-width: calc(var(--measure) + 4rem); padding-inline: 2rem; }
+

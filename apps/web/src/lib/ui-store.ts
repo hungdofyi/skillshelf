@@ -1,5 +1,9 @@
 import { useSyncExternalStore } from 'react';
 
+/** Document view mode, remembered across files and reloads (non-previewable files always open in Edit). */
+export type EditorMode = 'preview' | 'edit' | 'split';
+const EDITOR_MODES: readonly EditorMode[] = ['preview', 'edit', 'split'];
+
 /** What the left rail shows in the sidebar. */
 export type RailView = 'library' | 'books' | 'skills' | 'evals' | 'search' | 'activity';
 export const RAIL_VIEWS: readonly RailView[] = ['library', 'books', 'skills', 'evals', 'search', 'activity'];
@@ -9,6 +13,7 @@ interface UiState {
   rail: RailView;
   sidebarOpen: boolean;
   inspectorOpen: boolean;
+  editorMode: EditorMode;
   jobsOpen: boolean;
   selectedJobId: string | null;
   connectOpen: boolean;
@@ -21,7 +26,7 @@ interface UiState {
 }
 
 const STORE_KEY = 'b2s-shell';
-type Persisted = Pick<UiState, 'rail' | 'sidebarOpen' | 'inspectorOpen'>;
+type Persisted = Pick<UiState, 'rail' | 'sidebarOpen' | 'inspectorOpen' | 'editorMode'>;
 
 function loadPersisted(): Partial<Persisted> {
   try {
@@ -32,6 +37,7 @@ function loadPersisted(): Partial<Persisted> {
       ...(v.rail && RAIL_VIEWS.includes(v.rail) ? { rail: v.rail } : {}),
       ...(typeof v.sidebarOpen === 'boolean' ? { sidebarOpen: v.sidebarOpen } : {}),
       ...(typeof v.inspectorOpen === 'boolean' ? { inspectorOpen: v.inspectorOpen } : {}),
+      ...(v.editorMode && EDITOR_MODES.includes(v.editorMode) ? { editorMode: v.editorMode } : {}),
     };
   } catch {
     return {};
@@ -44,6 +50,7 @@ let state: UiState = {
   rail: 'library',
   sidebarOpen: true,
   inspectorOpen: wide,
+  editorMode: 'preview',
   jobsOpen: false,
   selectedJobId: null,
   connectOpen: false,
@@ -58,10 +65,10 @@ const listeners = new Set<() => void>();
 export function setUi(patch: Partial<UiState>): void {
   state = { ...state, instantPanels: false, ...patch };
   listeners.forEach((l) => l());
-  if ('rail' in patch || 'sidebarOpen' in patch || 'inspectorOpen' in patch) {
+  if ('rail' in patch || 'sidebarOpen' in patch || 'inspectorOpen' in patch || 'editorMode' in patch) {
     try {
-      const { rail, sidebarOpen, inspectorOpen } = state;
-      localStorage.setItem(STORE_KEY, JSON.stringify({ rail, sidebarOpen, inspectorOpen }));
+      const { rail, sidebarOpen, inspectorOpen, editorMode } = state;
+      localStorage.setItem(STORE_KEY, JSON.stringify({ rail, sidebarOpen, inspectorOpen, editorMode }));
     } catch {
       /* storage unavailable: layout just won't persist */
     }

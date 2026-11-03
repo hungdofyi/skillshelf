@@ -1,6 +1,7 @@
 import { forwardRef, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 import clsx from 'clsx';
 import { AlertTriangle, ChevronDown, Loader2 } from 'lucide-react';
+import { MagneticLayers, MagneticProvider, useMagneticGroup, useMagneticHover } from './magnetic-indicator';
 
 export const Spinner = ({ size = 14, className }: { size?: number; className?: string }) => (
   <Loader2 size={size} className={clsx('spin text-muted', className)} aria-label="Loading" />
@@ -71,6 +72,23 @@ export function Field({ label, hint, error, children, htmlFor }: { label: string
   );
 }
 
+/**
+ * Puts a non-field control (checkbox, button) in a row of Fields. It reserves the same label line
+ * (invisible unless `label` is given) and centres the control on the 32px control line, so labels align
+ * with labels and controls with controls; hints under neighbouring Fields just hang below. Use it
+ * instead of margin offsets, and give such rows `items-start`.
+ */
+export function ControlSlot({ children, label }: { children: ReactNode; label?: string }) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span aria-hidden={!label} className={clsx('text-caption font-medium text-fg', !label && 'invisible select-none')}>
+        {label ?? ' '}
+      </span>
+      <div className="flex h-8 items-center">{children}</div>
+    </div>
+  );
+}
+
 export function Checkbox({ checked, onChange, children, disabled }: { checked: boolean; onChange: (v: boolean) => void; children: ReactNode; disabled?: boolean }) {
   return (
     <label className={clsx('flex cursor-pointer items-center gap-2 text-ui', disabled && 'pointer-events-none text-disabled')}>
@@ -80,26 +98,42 @@ export function Checkbox({ checked, onChange, children, disabled }: { checked: b
   );
 }
 
+/**
+ * Segmented control with a magnetic indicator: the selected pill glides between segments and a soft
+ * highlight follows the mouse (see magnetic-indicator.tsx for the motion rules).
+ */
 export function Segmented<T extends string>({ value, onChange, options, label }: { value: T; onChange: (v: T) => void; options: Array<{ value: T; label: string }>; label: string }) {
+  const { ctx, containerProps } = useMagneticGroup();
   return (
-    // w-fit + self-start: hug the segments even inside flex/grid columns, which would otherwise stretch the track.
-    <div role="radiogroup" aria-label={label} className="inline-flex w-fit max-w-full self-start rounded-md bg-hover p-0.5">
-      {options.map((o) => (
-        <button
-          key={o.value}
-          type="button"
-          role="radio"
-          aria-checked={o.value === value}
-          onClick={() => onChange(o.value)}
-          className={clsx(
-            'fx h-6 rounded px-2.5 text-caption font-medium',
-            o.value === value ? 'bg-surface text-fg shadow-[0_0_0_0.5px_var(--line-strong)]' : 'text-muted hover:text-fg',
-          )}
-        >
-          {o.label}
-        </button>
-      ))}
-    </div>
+    <MagneticProvider value={ctx}>
+      {/* w-fit: hug the segments. A fit-content width is never stretched by flex/grid columns, and unlike
+          self-start it leaves the parent's cross-axis alignment alone (toolbars still centre it vertically). */}
+      <div role="radiogroup" aria-label={label} className="isolate inline-flex w-fit max-w-full rounded-md bg-hover p-0.5" {...containerProps}>
+        {options.map((o) => <SegmentedItem key={o.value} value={o.value} label={o.label} active={o.value === value} onSelect={() => onChange(o.value)} />)}
+      </div>
+    </MagneticProvider>
+  );
+}
+
+function SegmentedItem({ value, label, active, onSelect }: { value: string; label: string; active: boolean; onSelect: () => void }) {
+  const hover = useMagneticHover(value);
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={active}
+      onClick={onSelect}
+      {...hover}
+      className={clsx('fx relative h-6 px-2.5 text-caption font-medium', active ? 'text-fg' : 'text-muted hover:text-fg')}
+    >
+      <MagneticLayers
+        value={value}
+        active={active}
+        hoverLayer={{ className: 'pointer-events-none absolute inset-0 bg-surface/50', style: { borderRadius: 4 } }}
+        activeLayer={{ className: 'pointer-events-none absolute inset-0 bg-surface', style: { borderRadius: 4, boxShadow: '0 0 0 0.5px var(--line-strong)' } }}
+      />
+      <span className="relative z-10">{label}</span>
+    </button>
   );
 }
 

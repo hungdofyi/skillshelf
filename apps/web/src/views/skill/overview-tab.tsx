@@ -58,7 +58,7 @@ export function InstallList({ skill }: { skill: SkillSummary }) {
 export function OverviewTab({ skill }: { skill: SkillSummary }) {
   const inspectorOpen = useUi((s) => s.inspectorOpen);
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-8 py-6">
+    <div className="page-column flex flex-col gap-8 py-6">
       {!inspectorOpen && <section><SectionTitle>Lint</SectionTitle><LintList skill={skill} /></section>}
       <section>
         <SectionTitle aside={<span className="tnum text-caption text-muted">SKILL.md body {skill.bodyLines} lines · {skill.evalCount} eval cases</span>}>Files</SectionTitle>

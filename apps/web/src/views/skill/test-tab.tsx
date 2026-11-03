@@ -25,7 +25,7 @@ export function TestTab({ skill }: { skill: SkillSummary }) {
   const hasLoadSkill = mcp.data?.tools.some((t) => t.name === 'load_skill') ?? true;
 
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-8 py-6">
+    <div className="page-column flex flex-col gap-8 py-6">
       <section>
         <SectionTitle>Claude Code</SectionTitle>
         <div className="flex flex-col gap-3 rounded-lg bg-raised p-4 shadow-raised">

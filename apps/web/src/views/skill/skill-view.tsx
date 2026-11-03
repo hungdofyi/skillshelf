@@ -26,16 +26,16 @@ export function SkillView({ name, isSkillMd }: { name: string; isSkillMd: boolea
     <div className="flex h-full min-h-0 flex-col">
       <SkillHeader skill={skill} />
       <Tabs value={active} onValueChange={setTab} className="flex min-h-0 flex-1 flex-col">
-        <div className="hairline-b shrink-0"><TabList className="mx-auto w-full max-w-4xl px-6">
+        <div className="hairline-b shrink-0"><div className="page-column"><TabList className="-mx-2">
           <Tab value="overview">{icon(ListChecks)}Overview{errors > 0 && <span className="tnum inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-danger-soft px-1.5 text-micro text-danger" aria-label={`${errors} lint errors`}>{errors}</span>}</Tab>
           <Tab value="skill-md">{icon(FileText)}SKILL.md</Tab>
           <Tab value="references" count={skill.files.filter((f) => f.startsWith('references/')).length}>{icon(FolderTree)}References</Tab>
           <Tab value="evals" count={skill.evalCount}>{icon(FlaskConical)}Evals</Tab>
           <Tab value="test">{icon(PlayCircle)}Test</Tab>
           <Tab value="revise">{icon(PenLine)}Revise</Tab>
-        </TabList></div>
+        </TabList></div></div>
         <TabPanel value="overview"><OverviewTab skill={skill} /></TabPanel>
-        <TabPanel value="skill-md" className="overflow-hidden"><FileEditor key={skill.path} path={`${skill.path}/SKILL.md`} kind="markdown" /></TabPanel>
+        <TabPanel value="skill-md" className="overflow-hidden"><FileEditor key={skill.path} path={`${skill.path}/SKILL.md`} kind="markdown" toolbarInColumn /></TabPanel>
         <TabPanel value="references" className="overflow-hidden"><ReferencesTab skill={skill} /></TabPanel>
         <TabPanel value="evals"><EvalsTab skill={skill} /></TabPanel>
         <TabPanel value="test"><TestTab skill={skill} /></TabPanel>

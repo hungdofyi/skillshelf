@@ -9,7 +9,9 @@ import { navigate } from '../lib/location-state';
 export function Breadcrumb({ path, inline }: { path: string; inline?: boolean }) {
   const parts = path.split('/').filter(Boolean);
   return (
-    <nav aria-label="Breadcrumb" className={clsx('flex min-w-0 items-center gap-0.5 overflow-hidden text-caption text-muted', !inline && 'hairline-b h-9 shrink-0 px-4')}>
+    // Standalone bar = the editor toolbar's height (h-10) and inset (px-4): the top bar never changes height or
+    // shifts the page when switching between a book/skill view and a file.
+    <nav aria-label="Breadcrumb" className={clsx('flex min-w-0 items-center gap-0.5 overflow-hidden text-caption text-muted', !inline && 'hairline-b h-10 shrink-0 px-4')}>
       <button className="fx shrink-0 rounded px-1 py-0.5 hover:bg-hover hover:text-fg" onClick={() => navigate('')}>Library</button>
       {parts.map((p, i) => {
         const to = parts.slice(0, i + 1).join('/');

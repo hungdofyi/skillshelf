@@ -14,7 +14,7 @@ export function FolderView({ path }: { path: string }) {
   const children = node?.children ?? [];
   if (!children.length) return <EmptyState icon={<Folder size={22} />} title="This folder is empty">Right-click it in the tree to add a file or folder.</EmptyState>;
   return (
-    <ul className="mx-auto w-full max-w-4xl px-8 py-6">
+    <ul className="page-column py-6">
       {children.map((c) => (
         <li key={c.path}>
           <button onClick={() => navigate(c.path)} className="fx flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left hover:bg-hover">

@@ -30,10 +30,12 @@ export function useFileDraft(path: string, validate?: (text: string) => string |
 
   const edit = useCallback(
     (next: string) => {
+      // While the previous file is still shown (placeholder during a switch), edits would land on the wrong path.
+      if (query.isPlaceholderData) return;
       if (draft === null) baseMtime.current = query.data?.mtimeMs;
       setDraft(next);
     },
-    [draft, query.data?.mtimeMs],
+    [draft, query.data?.mtimeMs, query.isPlaceholderData],
   );
 
   const revert = useCallback(() => {

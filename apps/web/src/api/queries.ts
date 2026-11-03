@@ -23,8 +23,10 @@ export const keys = {
 };
 
 export const useTree = () => useQuery({ queryKey: keys.tree, queryFn: () => api<TreeResponse>('/api/tree'), placeholderData: keepPreviousData });
+// keepPreviousData: switching files shows the current file until the next arrives (no spinner flash);
+// editors check `isPlaceholderData` so nothing is edited against the wrong path.
 export const useFile = (path: string | null) =>
-  useQuery({ queryKey: keys.file(path ?? ''), queryFn: () => api<FileResponse>(`/api/file?${qs({ path: path! })}`), enabled: !!path, retry: false });
+  useQuery({ queryKey: keys.file(path ?? ''), queryFn: () => api<FileResponse>(`/api/file?${qs({ path: path! })}`), enabled: !!path, retry: false, placeholderData: keepPreviousData });
 export const useBooks = () => useQuery({ queryKey: keys.books, queryFn: () => api<BookSummary[]>('/api/books') });
 export const useBook = (slug: string | null) =>
   useQuery({ queryKey: keys.book(slug ?? ''), queryFn: () => api<BookSummary>(`/api/books/${encodeURIComponent(slug!)}`), enabled: !!slug, retry: false });

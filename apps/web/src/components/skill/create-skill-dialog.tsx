@@ -5,7 +5,7 @@ import { SKILL_NAME_MAX, SKILL_NAME_PATTERN, SKILL_RESERVED_WORDS, slugify, type
 import { keys, upsertJob, useBooks, useClaudeStatus, useGenerateSkill, useSkills } from '../../api/queries';
 import { Dialog } from '../ui/dialog';
 import { Button } from '../ui/button';
-import { Checkbox, Field, Input, Select, Textarea } from '../ui/misc';
+import { Checkbox, ControlSlot, Field, Input, Select, Textarea } from '../ui/misc';
 import { EFFORT_DEFAULTS, EffortSelect } from './effort-select';
 import { ClaudeStatusNote } from './claude-status-note';
 import { openJob, setUi } from '../../lib/ui-store';
@@ -119,14 +119,14 @@ export function CreateSkillDialog({ preselect, onClose }: { preselect: string | 
         <Field label="Notes (optional)" htmlFor="skill-notes" hint="Audience, output format, tone.">
           <Textarea id="skill-notes" value={notes} onKeyDown={submitShortcut} onChange={(e) => setNotes(e.target.value)} rows={2} />
         </Field>
-        <div className="flex flex-wrap items-end gap-6">
+        <div className="flex flex-wrap items-start gap-6">
           <Field label="Model" htmlFor="skill-model">
             <Select id="skill-model" value={model} onChange={(e) => setModel(e.target.value)}>
               <option value="sonnet">Sonnet</option><option value="opus">Opus</option><option value="haiku">Haiku</option>
             </Select>
           </Field>
           <EffortSelect id="skill-effort" value={effort} onChange={setEffort} />
-          <div className="pb-1.5"><Checkbox checked={withEvals} onChange={setWithEvals}>Generate evals</Checkbox></div>
+          <ControlSlot><Checkbox checked={withEvals} onChange={setWithEvals}>Generate evals</Checkbox></ControlSlot>
         </div>
       </div>
     </Dialog>

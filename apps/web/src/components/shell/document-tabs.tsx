@@ -21,6 +21,8 @@ import { ScrollNudge } from '../ui/one-line';
 const ENTER = { duration: 0.18, ease: [0.32, 0.72, 0, 1] as const };
 const EXIT = { duration: 0.12, ease: [0.4, 0, 1, 1] as const };
 const MOVE = { duration: 0.2, ease: [0.645, 0.045, 0.355, 1] as const };
+// Active underline moving between tabs: spring without bounce, interruptible (matches Tabs/Segmented).
+const UNDERLINE = { type: 'spring', duration: 0.25, bounce: 0 } as const;
 
 const loadMotionFeatures = () => import('./motion-features').then((r) => r.default);
 
@@ -104,6 +106,15 @@ export function DocumentTabs({ activePath }: { activePath: string }) {
                   >
                     {/* The active tab joins the document below: its bottom edge covers the bar's hairline. */}
                     {active && <span aria-hidden className="absolute inset-x-0 -bottom-px h-px bg-surface" />}
+                    {/* Active underline: one shared element that glides to the newly active tab (same spring as Tabs). */}
+                    {active && (
+                      <m.span
+                        aria-hidden
+                        layoutId="document-tab-underline"
+                        className="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 bg-fg"
+                        transition={{ layout: reduce ? { duration: 0 } : UNDERLINE }}
+                      />
+                    )}
                     <button
                       type="button"
                       role="tab"

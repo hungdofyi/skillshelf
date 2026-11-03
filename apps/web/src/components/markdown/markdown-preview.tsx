@@ -15,7 +15,9 @@ export function MarkdownPreview({ source, filePath, outline = true, frontmatterI
   return (
     <div className="@container relative h-full">
       <div ref={setScrollEl} className="h-full overflow-y-auto">
-        <article className="mx-auto w-full max-w-[720px] px-8 pb-24 pt-8">
+        {/* The shared page column (theme.css `page-column`): centred, same width as every view's header and tabs;
+            the frontmatter card and prose both fill it. The outline overlays the pane's right edge. */}
+        <article className="page-column pb-24 pt-8">
           {!frontmatterInInspector && <FrontmatterCard data={parsed.data} error={parsed.error} />}
           <MarkdownBody source={parsed.body} filePath={filePath} />
         </article>

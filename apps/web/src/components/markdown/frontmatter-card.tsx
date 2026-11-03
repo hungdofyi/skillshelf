@@ -44,7 +44,8 @@ export function FrontmatterList({ data, error, stacked }: { data: Record<string,
 export function FrontmatterCard({ data, error }: { data: Record<string, unknown> | null; error?: string }) {
   if (!data && !error) return null;
   return (
-    <section aria-label="Frontmatter" className="mb-6 max-w-[68ch] rounded-lg bg-hover px-3.5 py-2.5 font-sans text-ui leading-snug">
+    // Full column width: the article sets the measure, so the card lines up with the prose below it.
+    <section aria-label="Frontmatter" className="mb-6 w-full rounded-lg bg-hover px-3.5 py-2.5 font-sans text-ui leading-snug">
       <FrontmatterList data={data} error={error} />
     </section>
   );

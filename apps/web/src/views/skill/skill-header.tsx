@@ -23,7 +23,7 @@ export function PassRates({ rates, runId, skill }: { rates: Partial<Record<'with
  */
 export function SkillHeader({ skill }: { skill: SkillSummary }) {
   return (
-    <header className="mx-auto w-full max-w-4xl shrink-0 px-8 pb-3 pt-6">
+    <header className="page-column shrink-0 pb-3 pt-6">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
         <h1 className="text-heading font-semibold tracking-[-0.015em]">{skill.name}</h1>
         <PassRates rates={skill.latestRun?.passRate ?? {}} runId={skill.latestRun?.id} skill={skill.name} />

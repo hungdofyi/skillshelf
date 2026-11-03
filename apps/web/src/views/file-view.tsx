@@ -20,5 +20,5 @@ export function FileView({ path }: { path: string }) {
   }
   const ext = extname(path);
   const kind: PreviewKind = isMarkdownPath(path) ? 'markdown' : ext === 'json' ? 'json' : 'none';
-  return <FileEditor key={path} path={path} kind={kind} leading={<Breadcrumb path={path} inline />} inspector />;
+  return <FileEditor path={path} kind={kind} leading={<Breadcrumb path={path} inline />} inspector />;
 }

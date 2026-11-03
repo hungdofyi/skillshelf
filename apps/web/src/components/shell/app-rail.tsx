@@ -109,8 +109,10 @@ export function AppRail() {
       {!!badge && <span className="tnum absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent-solid px-1 text-micro leading-none text-accent-fg">{badge}</span>}
     </RailButton>
   );
+  // py-1 matches the side inset ((48px rail − 40px buttons) / 2 = 4px), so the first and last buttons sit 4px from every edge.
+  // box-content keeps the divider border outside those 48px; otherwise it eats 1px and the buttons sit off-centre.
   return (
-    <nav aria-label="Workspace" className="hairline-r flex w-12 shrink-0 flex-col items-center gap-1 bg-panel py-2">
+    <nav aria-label="Workspace" className="hairline-r box-content flex w-12 shrink-0 flex-col items-center gap-1 bg-panel py-1">
       {VIEWS.map(({ view: v, label, Icon }, i) => view(v, label, Icon, i + 1))}
       <span aria-hidden className="my-1 h-px w-6 bg-line" />
       {view('activity', running ? `Activity, ${running} running` : 'Activity', Activity, 6, running)}
