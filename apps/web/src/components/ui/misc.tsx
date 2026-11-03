@@ -65,7 +65,8 @@ export function Field({ label, hint, error, children, htmlFor }: { label: string
         {label}
       </label>
       {children}
-      {error ? <p className="text-caption text-danger">{error}</p> : hint ? <p className="text-caption text-faint">{hint}</p> : null}
+      {/* text-pretty: avoid a lone last word when a hint or error wraps. */}
+      {error ? <p className="text-caption text-pretty text-danger">{error}</p> : hint ? <p className="text-caption text-pretty text-faint">{hint}</p> : null}
     </div>
   );
 }
@@ -81,7 +82,8 @@ export function Checkbox({ checked, onChange, children, disabled }: { checked: b
 
 export function Segmented<T extends string>({ value, onChange, options, label }: { value: T; onChange: (v: T) => void; options: Array<{ value: T; label: string }>; label: string }) {
   return (
-    <div role="radiogroup" aria-label={label} className="inline-flex rounded-md bg-hover p-0.5">
+    // w-fit + self-start: hug the segments even inside flex/grid columns, which would otherwise stretch the track.
+    <div role="radiogroup" aria-label={label} className="inline-flex w-fit max-w-full self-start rounded-md bg-hover p-0.5">
       {options.map((o) => (
         <button
           key={o.value}

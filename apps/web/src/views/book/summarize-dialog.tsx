@@ -94,7 +94,7 @@ export function SummarizeDialog({ slug, onClose }: { slug: string; onClose: () =
             label="Focus (optional)"
             htmlFor="summary-focus"
             error={focus.length > FOCUS_MAX ? `${focus.length} / ${FOCUS_MAX} characters` : null}
-            hint="Say who you are or what you need, and each chapter gets a High, Medium or Low relevance and a suggested reading path."
+            hint="Rates each chapter's relevance to your focus and adds a reading path."
           >
             <Textarea id="summary-focus" autoFocus={!('ontouchstart' in window)} rows={2} value={focus} onKeyDown={shortcut} onChange={(e) => setFocus(e.target.value)} placeholder="I'm a PM improving onboarding" />
           </Field>
