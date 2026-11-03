@@ -83,6 +83,8 @@ pnpm test        # server (vitest, fake claude CLI) + web + converter (pytest)
 pnpm typecheck
 ```
 
-## License notes
+## License
 
-The PDF converter uses PyMuPDF / pymupdf4llm, which are AGPL-3.0. Personal local use is fine; if you redistribute Skillshelf or host it for others, the AGPL terms apply to the combined work.
+Skillshelf is licensed under the [GNU Affero General Public License v3.0 or later](LICENSE). You may use, modify and share it; if you distribute a modified version or run one as a service for others, you must make its source available under the same license.
+
+The PDF converter depends on PyMuPDF / pymupdf4llm, which are also AGPL-3.0.

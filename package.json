@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "description": "Convert PDF/EPUB books into Markdown, then into Claude Agent Skills; preview, evaluate and serve them over MCP.",
+  "license": "AGPL-3.0-or-later",
   "type": "module",
   "packageManager": "pnpm@10.0.0",
   "engines": {

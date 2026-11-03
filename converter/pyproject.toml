@@ -1,5 +1,6 @@
 [project]
 name = "book-convert"
+license = "AGPL-3.0-or-later"
 version = "0.1.0"
 description = "Convert PDF/EPUB books into chapter Markdown plus a book.json manifest."
 requires-python = ">=3.12,<3.13"
