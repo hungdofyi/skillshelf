@@ -2,6 +2,8 @@
 
 Turn a PDF or EPUB book into a Claude **Agent Skill** built for a goal you name (for example "audit a SaaS onboarding flow"). Preview and edit everything in a local web UI, measure the skill with evals (with-skill vs no-skill), and use it from Claude Code, Claude.ai or ChatGPT over MCP.
 
+![Skillshelf with the Shape Up book imported: 22 chapters, with Create skill and Summarize book in the inspector](docs/images/skillshelf-book-view.png)
+
 ```
 book.pdf/.epub ──convert──▶ chapter Markdown ──generate (Claude Code)──▶ skills/<name>/
                                                                            SKILL.md
