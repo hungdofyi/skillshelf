@@ -1,11 +1,11 @@
-import { BookOpen, FlaskConical, PenLine, RefreshCw, Wand2 } from 'lucide-react';
+import { BookOpen, BookText, FlaskConical, PenLine, RefreshCw, Wand2 } from 'lucide-react';
 import type { Job, JobKind, JobStatus } from '@b2s/shared';
 import { Pill, Spinner } from '../ui/misc';
 
-export const KIND_LABEL: Record<JobKind, string> = { convert: 'Convert', generate: 'Generate', revise: 'Revise', eval: 'Eval' };
+export const KIND_LABEL: Record<JobKind, string> = { convert: 'Convert', generate: 'Generate', revise: 'Revise', eval: 'Eval', summarize: 'Summarize' };
 
 export function JobKindIcon({ kind, size = 14 }: { kind: JobKind; size?: number }) {
-  const Icon = { convert: BookOpen, generate: Wand2, revise: PenLine, eval: FlaskConical }[kind] ?? RefreshCw;
+  const Icon = { convert: BookOpen, generate: Wand2, revise: PenLine, eval: FlaskConical, summarize: BookText }[kind] ?? RefreshCw;
   return <Icon size={size} aria-hidden className="shrink-0 text-muted" />;
 }
 

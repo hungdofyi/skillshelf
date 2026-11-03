@@ -6,7 +6,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
 import path from 'node:path';
-import type { EvalArm, EvalCase, EvalCaseArmResult, EvalRun, Job } from '@b2s/shared';
+import { EFFORTS, type EvalArm, type EvalCase, type EvalCaseArmResult, type EvalRun, type Job } from '@b2s/shared';
 import { z } from 'zod';
 import type { AppContext } from '../app-context.js';
 import { ClaudeAbortedError, runClaude } from '../claude/claude-runner.js';
@@ -14,6 +14,7 @@ import { assertClaudeReady } from '../claude/claude-status.js';
 import { detectSkillTrigger } from '../claude/detect-skill-trigger.js';
 import type { JobContext } from '../jobs/job-manager.js';
 import { logClaudeEvent } from '../generation/skill-authoring.js';
+import { AGENT_EFFORT, JUDGE_EFFORT, resolveEffort } from '../generation/effort-option.js';
 import { resolveModel } from '../generation/model-option.js';
 import { HttpError } from '../http-error.js';
 import { gradeAnswer } from './eval-judge.js';
@@ -26,6 +27,7 @@ const requestSchema = z.object({
   caseIds: z.array(z.union([z.string(), z.number()])).optional(),
   model: z.string().optional(),
   judgeModel: z.string().optional(),
+  effort: z.enum(EFFORTS).optional(),
   // Out-of-range values are clamped to 1..MAX_CONCURRENCY rather than rejected.
   concurrency: z.number().finite().optional(),
 });
@@ -64,6 +66,7 @@ export async function startEvalRun(ctx: AppContext, skill: string, body: unknown
   const arms: EvalArm[] = req.arms ? [...new Set(req.arms)] : ['with_skill', 'baseline'];
   const model = resolveModel(req.model, ctx.config.models.eval);
   const judgeModel = resolveModel(req.judgeModel, ctx.config.models.judge);
+  const effort = resolveEffort(req.effort, AGENT_EFFORT);
   const runId = newRunId();
   const runDir = evalRunDir(ctx.config.libraryDir, skill, runId);
   mkdirSync(runDir, { recursive: true });
@@ -74,6 +77,8 @@ export async function startEvalRun(ctx: AppContext, skill: string, body: unknown
     skillHash: ctx.skills.hash(skill),
     model,
     judgeModel,
+    effort,
+    judgeEffort: JUDGE_EFFORT,
     arms,
     caseIds: cases.map((c) => String(c.id)),
     status: 'running',
@@ -181,6 +186,7 @@ async function runUnit(ctx: AppContext, job: JobContext, run: EvalRun, runDir: s
       cwd: sandbox.dir,
       prompt: evalCase.prompt,
       model: run.model,
+      effort: run.effort ?? AGENT_EFFORT,
       tools: ['Skill', 'Read', 'Glob', 'Grep', 'Write', 'Edit'],
       // Read/Edit are scoped to the sandbox cwd; Read rules also govern Glob and Grep.
       allowedTools: ['Skill', 'Read(./**)', 'Edit(./**)'],
@@ -214,6 +220,7 @@ async function runUnit(ctx: AppContext, job: JobContext, run: EvalRun, runDir: s
       promptsDir: ctx.config.promptsDir,
       cwd: judgeDir.dir,
       model: run.judgeModel,
+      effort: JUDGE_EFFORT,
       prompt: evalCase.prompt,
       expectedOutput: evalCase.expected_output,
       answer: agent.text,

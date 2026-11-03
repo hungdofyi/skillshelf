@@ -3,6 +3,7 @@ import { useRun } from '../../api/queries';
 import { formatDuration, formatTime } from '../../lib/format';
 import { navigate } from '../../lib/location-state';
 import { ArmSummary } from '../../views/eval/arm-summary';
+import { effortLabel } from '../skill/effort-select';
 import { OneLine } from '../ui/one-line';
 import { InspectorFacts, InspectorNote, InspectorSection } from './inspector-section';
 
@@ -20,7 +21,8 @@ export function EvalRunInspector({ skill, runId }: { skill: string; runId: strin
         <InspectorFacts items={[
           ['Skill', <button className="fx text-left text-accent hover:underline" onClick={() => navigate(`skills/${skill}`, { tab: 'evals' })}>{skill}</button>],
           ['Model', run.model],
-          ['Judge', run.judgeModel],
+          ...(run.effort ? ([['Effort', effortLabel(run.effort)]] as Array<[string, ReactNode]>) : []),
+          ['Judge', run.judgeEffort ? `${run.judgeModel}, ${effortLabel(run.judgeEffort).toLowerCase()} effort` : run.judgeModel],
           ['Started', formatTime(run.startedAt)],
           ...(run.finishedAt ? ([['Took', <span className="tnum">{formatDuration(Date.parse(run.finishedAt) - Date.parse(run.startedAt))}</span>]] as Array<[string, ReactNode]>) : []),
           ['Skill hash', <span className="font-mono text-caption" title="Hash of the skill folder at run time">{run.skillHash.slice(0, 12)}</span>],

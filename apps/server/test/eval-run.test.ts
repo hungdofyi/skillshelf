@@ -203,3 +203,37 @@ describe('eval run job', () => {
     await expect(startEvalRun(noEvals.ctx, 's', {})).rejects.toMatchObject({ status: 404 });
   });
 });
+
+const effortOf = (argv: string[]) => (argv.includes('--effort') ? argv[argv.indexOf('--effort') + 1] : undefined);
+const argAt = (argv: string[], flag: string) => argv[argv.indexOf(flag) + 1];
+
+describe('eval effort', () => {
+  it('effort: agent arms default to medium, the judge is always low and not configurable', async () => {
+    const app = await skillApp();
+    const { job, runId } = await startEvalRun(app.ctx, 'auditor', {});
+    await waitForJob(app.ctx, job.id);
+    const split = () => {
+      const calls = app.calls();
+      return { agents: calls.filter((c) => argAt(c.argv, '--tools') !== ''), judges: calls.filter((c) => argAt(c.argv, '--tools') === '') };
+    };
+    let { agents, judges } = split();
+    expect(agents.length).toBeGreaterThan(0);
+    expect(judges.length).toBeGreaterThan(0);
+    expect(agents.every((c) => effortOf(c.argv) === 'medium')).toBe(true);
+    expect(judges.every((c) => effortOf(c.argv) === 'low')).toBe(true);
+    const runFile = path.join(app.ctx.config.libraryDir, 'evals/auditor', runId, 'run.json');
+    expect(JSON.parse(readFileSync(runFile, 'utf8'))).toMatchObject({ effort: 'medium', judgeEffort: 'low' });
+
+    app.resetCalls();
+    const second = await startEvalRun(app.ctx, 'auditor', { effort: 'max', judgeEffort: 'max' });
+    await waitForJob(app.ctx, second.job.id);
+    ({ agents, judges } = split());
+    expect(agents.every((c) => effortOf(c.argv) === 'max')).toBe(true);
+    expect(judges.every((c) => effortOf(c.argv) === 'low')).toBe(true);
+  });
+  it('rejects an unknown effort with 400', async () => {
+    const app = await skillApp();
+    await expect(startEvalRun(app.ctx, 'auditor', { effort: 'ludicrous' })).rejects.toMatchObject({ status: 400, message: expect.stringMatching(/effort/) });
+    expect(app.calls()).toHaveLength(0);
+  });
+});

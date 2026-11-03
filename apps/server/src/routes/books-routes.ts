@@ -5,6 +5,7 @@ import { bodyLimit } from 'hono/body-limit';
 import type { AppContext } from '../app-context.js';
 import { startConvertJob, parseConvertRequest } from '../books/convert-book-job.js';
 import { MAX_BOOK_BYTES, detectBookFormat, sanitizeFileName, storeSource, uniqueSlug } from '../books/import-book.js';
+import { startSummarizeBook } from '../generation/summarize-book-job.js';
 import { HttpError } from '../http-error.js';
 
 export function booksRoutes(ctx: AppContext): Hono {
@@ -47,6 +48,11 @@ export function booksRoutes(ctx: AppContext): Hono {
     const body = await c.req.json().catch(() => ({}));
     const job = startConvertJob(ctx, c.req.param('slug'), parseConvertRequest(body));
     return c.json({ job });
+  });
+
+  app.post('/api/books/:slug/summarize', async (c) => {
+    const body = await c.req.json().catch(() => ({}));
+    return c.json(await startSummarizeBook(ctx, c.req.param('slug'), body));
   });
 
   return app;

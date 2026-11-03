@@ -2,7 +2,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import type {
   BookSummary, ClaudeStatus, ConvertRequest, EvalRun, FileResponse, GenerateSkillRequest, InstallSkillRequest,
   InstallSkillResponse, Job, JobLogLine, McpInfo, ReviseSkillRequest, RunEvalRequest, SkillSummary, TreeResponse,
-  WriteFileRequest,
+  SummarizeBookRequest, WriteFileRequest,
 } from '@b2s/shared';
 import { api, qs } from './client';
 
@@ -70,6 +70,8 @@ export function useWriteFile() {
 
 export const useGenerateSkill = () =>
   useMutation({ mutationFn: (req: GenerateSkillRequest) => api<{ job: Job }>('/api/skills/generate', { method: 'POST', json: req }) });
+export const useSummarizeBook = (slug: string) =>
+  useMutation({ mutationFn: (req: SummarizeBookRequest) => api<{ job: Job; path: string }>(`/api/books/${encodeURIComponent(slug)}/summarize`, { method: 'POST', json: req }) });
 export const useReviseSkill = (name: string) =>
   useMutation({ mutationFn: (req: ReviseSkillRequest) => api<{ job: Job }>(`/api/skills/${encodeURIComponent(name)}/revise`, { method: 'POST', json: req }) });
 export const useConvertBook = (slug: string) =>

@@ -13,6 +13,7 @@ interface UiState {
   selectedJobId: string | null;
   connectOpen: boolean;
   createSkillFor: string | null | false; // book slug to preselect, null = none, false = closed
+  summarizeFor: string | false; // book slug being summarized, false = closed
   /** Bumped by ⌘K / ⌘P so the quick-open field focuses even when it is already showing. */
   searchFocus: number;
   /** True when the last panel toggle came from the keyboard: keyboard toggles never animate. */
@@ -47,6 +48,7 @@ let state: UiState = {
   selectedJobId: null,
   connectOpen: false,
   createSkillFor: false,
+  summarizeFor: false,
   searchFocus: 0,
   instantPanels: false,
   ...loadPersisted(),
@@ -78,6 +80,7 @@ export function useUi<T>(select: (s: UiState) => T): T {
 
 export const getUi = () => state;
 export const openJob = (id: string) => setUi({ jobsOpen: true, selectedJobId: id });
+export const openSummarize = (bookSlug: string) => setUi({ summarizeFor: bookSlug });
 export const openCreateSkill = (bookSlug: string | null = null) => setUi({ createSkillFor: bookSlug });
 
 /** Rail click: switch the sidebar view, or collapse the sidebar when the active view is clicked again. */

@@ -5,6 +5,7 @@ import { useSkill } from '../../api/queries';
 import { navigate } from '../../lib/location-state';
 import { InstallList, LintList } from '../../views/skill/overview-tab';
 import { PassRates } from '../../views/skill/skill-header';
+import { effortLabel } from '../skill/effort-select';
 import { Button } from '../ui/button';
 import { InspectorFacts, InspectorNote, InspectorSection } from './inspector-section';
 
@@ -36,12 +37,13 @@ export function SkillInspector({ name }: { name: string }) {
       </InspectorSection>
       <InspectorSection title="Lint"><LintList skill={skill} /></InspectorSection>
       <InspectorSection title="Installed"><InstallList skill={skill} /></InspectorSection>
-      {(meta.source || meta.goal || meta.model) && (
+      {(meta.source || meta.goal || meta.model || meta.effort) && (
         <InspectorSection title="Made from">
           <InspectorFacts items={[
             ...(meta.source ? ([['Source', meta.source]] as Array<[string, string]>) : []),
             ...(meta.goal ? ([['Goal', meta.goal]] as Array<[string, string]>) : []),
             ...(meta.model ? ([['Model', meta.model]] as Array<[string, string]>) : []),
+            ...(meta.effort ? ([['Effort', effortLabel(meta.effort)]] as Array<[string, string]>) : []),
           ]} />
         </InspectorSection>
       )}

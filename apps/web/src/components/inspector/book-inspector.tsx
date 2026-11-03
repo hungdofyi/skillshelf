@@ -1,7 +1,7 @@
-import { ScrollText, Wand2 } from 'lucide-react';
+import { BookText, ScrollText, Wand2 } from 'lucide-react';
 import { useBook, useJobs } from '../../api/queries';
 import { formatBytes, formatNumber, formatTime } from '../../lib/format';
-import { openCreateSkill, openJob } from '../../lib/ui-store';
+import { openCreateSkill, openJob, openSummarize } from '../../lib/ui-store';
 import { ReconvertPanel } from '../../views/book/reconvert-panel';
 import { Button } from '../ui/button';
 import { Pill } from '../ui/misc';
@@ -33,8 +33,9 @@ export function BookInspector({ slug }: { slug: string }) {
   return (
     <>
       {m && (
-        <div className="px-4 pb-1 pt-3">
+        <div className="grid gap-1.5 px-4 pb-1 pt-3">
           <Button variant="primary" className="w-full" icon={<Wand2 size={14} />} onClick={() => openCreateSkill(slug)}>Create skill from this book</Button>
+          <Button className="w-full" icon={<BookText size={14} />} onClick={() => openSummarize(slug)}>Summarize book</Button>
         </div>
       )}
       {m && (

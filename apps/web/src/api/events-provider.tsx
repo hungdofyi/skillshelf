@@ -16,6 +16,7 @@ export const useEventsConnected = () => useContext(EventsContext).connected;
 function jobOpenPath(job: Job): string {
   const r = job.result ?? {};
   if (job.kind === 'generate' && typeof r.skill === 'string') return `skills/${r.skill}`;
+  if (job.kind === 'summarize' && typeof r.path === 'string') return r.path;
   if (job.kind === 'eval' && typeof r.runId === 'string') return `evals/${basename(job.target)}/${r.runId}`;
   return job.target;
 }

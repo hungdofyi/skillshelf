@@ -11,6 +11,7 @@
 import { type ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
 import { appendFileSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
+import type { Effort } from '@b2s/shared';
 import { assertNoApiKey, buildClaudeEnv } from './claude-env.js';
 import { assertClaudeReady } from './claude-status.js';
 import { assertNoRiskyProjectSettings } from './project-settings-guard.js';
@@ -22,6 +23,8 @@ export interface ClaudeRunOptions {
   cwd: string;
   prompt: string;
   model: string;
+  /** Reasoning effort (`--effort`); the flag is omitted when undefined. */
+  effort?: Effort;
   /** Built-in tool set offered to the model (`--tools`). `[]` disables every tool. */
   tools: string[];
   /** Permission rules that pre-approve calls (`--allowedTools`), e.g. "Edit(skills/x/**)". */
@@ -79,6 +82,7 @@ export function buildClaudeArgs(opts: Omit<ClaudeRunOptions, 'cwd' | 'prompt'>):
     '--no-session-persistence',
     '--tools', opts.tools.join(','),
   ];
+  if (opts.effort) args.push('--effort', opts.effort);
   if (opts.allowedTools?.length) args.push('--allowedTools', opts.allowedTools.join(' '));
   if (opts.disallowedTools?.length) args.push('--disallowedTools', opts.disallowedTools.join(' '));
   for (const dir of opts.addDirs ?? []) args.push('--add-dir', dir);

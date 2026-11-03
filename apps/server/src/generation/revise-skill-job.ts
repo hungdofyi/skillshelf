@@ -3,13 +3,14 @@
  * free-text feedback and, optionally, the failed cases of an eval run.
  */
 import { existsSync } from 'node:fs';
-import type { EvalFile, Job } from '@b2s/shared';
+import { EFFORTS, type EvalFile, type Job } from '@b2s/shared';
 import { z } from 'zod';
 import type { AppContext } from '../app-context.js';
 import { runClaude } from '../claude/claude-runner.js';
 import { assertClaudeReady } from '../claude/claude-status.js';
 import { HttpError } from '../http-error.js';
 import { describeFailedCases } from './failed-cases-context.js';
+import { AUTHORING_EFFORT, resolveEffort } from './effort-option.js';
 import { resolveModel } from './model-option.js';
 import { renderPromptFile } from './render-prompt.js';
 import { authoringToolScope, finalizeSkill, logClaudeEvent } from './skill-authoring.js';
@@ -20,6 +21,7 @@ const requestSchema = z
     feedback: z.string().trim().max(10_000).default(''),
     evalRunId: z.string().optional(),
     model: z.string().optional(),
+    effort: z.enum(EFFORTS).optional(),
   })
   .refine((r) => r.feedback.length > 0 || Boolean(r.evalRunId), { message: 'Feedback is required unless an eval run is selected', path: ['feedback'] });
 
@@ -32,6 +34,7 @@ export async function startReviseSkill(ctx: AppContext, name: string, body: unkn
   const target = `skills/${name}`;
   if (ctx.jobs.isBusy(target)) throw new HttpError(409, `Another job is already working on ${target}`);
   const model = resolveModel(req.model, ctx.config.models.generate);
+  const effort = resolveEffort(req.effort, AUTHORING_EFFORT);
 
   let evals: EvalFile | undefined;
   try {
@@ -69,6 +72,7 @@ export async function startReviseSkill(ctx: AppContext, name: string, body: unkn
       cwd: ctx.config.libraryDir,
       prompt,
       model,
+      effort,
       ...authoringToolScope(name),
       signal: job.signal,
       onEvent: logClaudeEvent(job),
@@ -76,7 +80,7 @@ export async function startReviseSkill(ctx: AppContext, name: string, body: unkn
     if (result.isError) throw new Error(`Claude reported an error: ${result.text.slice(0, 500) || '(no message)'}`);
     if (!existsSync(`${skillDir}/SKILL.md`)) throw new Error('SKILL.md is missing after the revision; restore it from the backup.');
 
-    await finalizeSkill({ ctx, job, skillName: name, model, metadata: { 'revised-at': new Date().toISOString(), 'revised-with': model } });
+    await finalizeSkill({ ctx, job, skillName: name, model, effort, metadata: { 'revised-at': new Date().toISOString(), 'revised-with': model, 'revised-effort': effort } });
     job.log(`Revision finished: skills/${name}/ (backup: ${backup})`);
     return { skill: name, backup };
   });

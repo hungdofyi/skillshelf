@@ -3,13 +3,14 @@
  * read the selected chapters and write skills/<name>/{SKILL.md, references/, evals/evals.json}.
  */
 import { existsSync } from 'node:fs';
-import { type GenerateSkillRequest, type Job, SKILL_NAME_MAX, SKILL_NAME_PATTERN, SKILL_RESERVED_WORDS, slugify } from '@b2s/shared';
+import { EFFORTS, type GenerateSkillRequest, type Job, SKILL_NAME_MAX, SKILL_NAME_PATTERN, SKILL_RESERVED_WORDS, slugify } from '@b2s/shared';
 import { z } from 'zod';
 import type { AppContext } from '../app-context.js';
 import { assertClaudeReady } from '../claude/claude-status.js';
 import { runClaude } from '../claude/claude-runner.js';
 import { HttpError } from '../http-error.js';
 import { type BookSelection, formatSource, renderBooksSection } from './book-context.js';
+import { AUTHORING_EFFORT, resolveEffort } from './effort-option.js';
 import { resolveModel } from './model-option.js';
 import { renderPromptFile } from './render-prompt.js';
 import { authoringToolScope, finalizeSkill, logClaudeEvent } from './skill-authoring.js';
@@ -21,6 +22,7 @@ const requestSchema = z.object({
   notes: z.string().max(5000).optional(),
   chapters: z.record(z.string(), z.array(z.number().int().min(0))).optional(),
   model: z.string().optional(),
+  effort: z.enum(EFFORTS).optional(),
   withEvals: z.boolean().optional(),
 });
 
@@ -41,6 +43,7 @@ export async function startGenerateSkill(ctx: AppContext, body: unknown): Promis
   const goal = req.goal.trim();
   const name = resolveSkillName(goal, req.name);
   const model = resolveModel(req.model, ctx.config.models.generate);
+  const effort = resolveEffort(req.effort, AUTHORING_EFFORT);
 
   const slugs = [...new Set(req.books)];
   const selection: BookSelection[] = slugs.map((slug) => {
@@ -70,7 +73,7 @@ export async function startGenerateSkill(ctx: AppContext, body: unknown): Promis
 
   const withEvals = req.withEvals !== false;
   return ctx.jobs.create({ kind: 'generate', title: `Generate skill ${name}`, target }, async (job) => {
-    job.log(`Generating "${name}" from ${slugs.join(', ')} with ${model}`);
+    job.log(`Generating "${name}" from ${slugs.join(', ')} with ${model} (effort ${effort})`);
     const prompt = renderPromptFile(ctx.config.promptsDir, 'generate-skill.md', {
       goal,
       notes: req.notes?.trim() || '(none)',
@@ -84,6 +87,7 @@ export async function startGenerateSkill(ctx: AppContext, body: unknown): Promis
       cwd: ctx.config.libraryDir,
       prompt,
       model,
+      effort,
       ...authoringToolScope(name),
       signal: job.signal,
       onEvent: logClaudeEvent(job),
@@ -96,12 +100,14 @@ export async function startGenerateSkill(ctx: AppContext, body: unknown): Promis
       job,
       skillName: name,
       model,
+      effort,
       metadata: {
         generator: 'skillshelf',
         goal,
         source: formatSource(selection.map((s) => s.manifest)),
         'generated-at': new Date().toISOString(),
         model,
+        effort,
       },
     });
     job.log(`Skill ready: skills/${name}/`);

@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Wand2 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
-import { SKILL_NAME_MAX, SKILL_NAME_PATTERN, SKILL_RESERVED_WORDS, slugify, type BookSummary, type GenerateSkillRequest, type Job } from '@b2s/shared';
+import { SKILL_NAME_MAX, SKILL_NAME_PATTERN, SKILL_RESERVED_WORDS, slugify, type BookSummary, type Effort, type GenerateSkillRequest, type Job } from '@b2s/shared';
 import { keys, upsertJob, useBooks, useClaudeStatus, useGenerateSkill, useSkills } from '../../api/queries';
 import { Dialog } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Checkbox, Field, Input, Select, Textarea } from '../ui/misc';
+import { EFFORT_DEFAULTS, EffortSelect } from './effort-select';
 import { ClaudeStatusNote } from './claude-status-note';
 import { openJob, setUi } from '../../lib/ui-store';
 import { shortcutLabels } from '../../lib/use-global-shortcuts';
@@ -54,6 +55,7 @@ export function CreateSkillDialog({ preselect, onClose }: { preselect: string | 
   const [chapters, setChapters] = useState<Record<string, number[] | undefined>>({});
   const [notes, setNotes] = useState('');
   const [model, setModel] = useState('sonnet');
+  const [effort, setEffort] = useState<Effort>(EFFORT_DEFAULTS.generate);
   const [withEvals, setWithEvals] = useState(true);
 
   useEffect(() => { if (!nameEdited) setName(goal.trim() ? slugify(goal, 48) : ''); }, [goal, nameEdited]);
@@ -67,7 +69,7 @@ export function CreateSkillDialog({ preselect, onClose }: { preselect: string | 
   const submitShortcut = (e: React.KeyboardEvent) => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && canSubmit && !generate.isPending) { e.preventDefault(); submit(); } };
   const submit = () => {
     const scoped = Object.fromEntries(selected.flatMap((s) => (chapters[s] ? [[s, chapters[s]!]] : [])));
-    const req: GenerateSkillRequest = { books: selected, goal: goal.trim(), name, model, withEvals, ...(notes.trim() ? { notes: notes.trim() } : {}), ...(Object.keys(scoped).length ? { chapters: scoped } : {}) };
+    const req: GenerateSkillRequest = { books: selected, goal: goal.trim(), name, model, effort, withEvals, ...(notes.trim() ? { notes: notes.trim() } : {}), ...(Object.keys(scoped).length ? { chapters: scoped } : {}) };
     generate.mutate(req, {
       onSuccess: ({ job }) => {
         qc.setQueryData<Job[]>(keys.jobs, (l) => upsertJob(l, job));
@@ -123,6 +125,7 @@ export function CreateSkillDialog({ preselect, onClose }: { preselect: string | 
               <option value="sonnet">Sonnet</option><option value="opus">Opus</option><option value="haiku">Haiku</option>
             </Select>
           </Field>
+          <EffortSelect id="skill-effort" value={effort} onChange={setEffort} />
           <div className="pb-1.5"><Checkbox checked={withEvals} onChange={setWithEvals}>Generate evals</Checkbox></div>
         </div>
       </div>

@@ -4,13 +4,20 @@ import remarkGfm from 'remark-gfm';
 import rehypeSlug from 'rehype-slug';
 import rehypeHighlight from 'rehype-highlight';
 import { navigate } from '../../lib/location-state';
+import { openTab } from '../../lib/open-tabs-store';
 import { dirname } from '../../lib/route';
 import { rawUrl } from '../../api/client';
 
 /** Resolve a relative link against the current file's folder; returns null when it escapes the library. */
 export function resolveRelative(fromFile: string, href: string): string | null {
   const out = dirname(fromFile).split('/').filter(Boolean);
-  for (const part of decodeURI(href).split('/')) {
+  let decoded: string;
+  try {
+    decoded = decodeURI(href);
+  } catch {
+    return null; // malformed escape: not a link we can follow
+  }
+  for (const part of decoded.split('/')) {
     if (part === '' || part === '.') continue;
     if (part === '..') {
       if (!out.length) return null;
@@ -25,6 +32,14 @@ const CHAPTER_LABEL = /^——\s+(.{1,40}?)\s+——$/;
 
 type HastNode = { type: string; value?: string; children?: HastNode[] };
 const plainText = (n: HastNode | undefined): string => (n?.type === 'text' ? n.value ?? '' : (n?.children ?? []).map(plainText).join(''));
+
+function safeDecode(s: string): string {
+  try {
+    return decodeURIComponent(s);
+  } catch {
+    return s;
+  }
+}
 
 function scrollToId(id: string) {
   document.getElementById(id)?.scrollIntoView({ block: 'start' });
@@ -56,15 +71,33 @@ function buildComponents(filePath: string): Components {
     a({ href, children, node: _n, ...rest }) {
       if (!href) return <a {...rest}>{children}</a>;
       if (href.startsWith('#')) {
-        return <a href={href} {...rest} onClick={(e) => { e.preventDefault(); scrollToId(decodeURIComponent(href.slice(1))); }}>{children}</a>;
+        return <a href={href} {...rest} onClick={(e) => { e.preventDefault(); scrollToId(safeDecode(href.slice(1))); }}>{children}</a>;
       }
-      if (/^[a-z][a-z0-9+.-]*:/i.test(href)) {
+      if (/^https?:/i.test(href) || /^mailto:/i.test(href)) {
         return <a href={href} target="_blank" rel="noreferrer noopener" {...rest}>{children}</a>;
       }
+      // Any other scheme (data:, file:, ...) is not followed: show the label only.
+      if (/^[a-z][a-z0-9+.-]*:/i.test(href) || href.startsWith('//')) return <span>{children}</span>;
       const [pathPart] = href.split('#');
       const target = pathPart ? resolveRelative(filePath, pathPart) : null;
-      if (!target) return <a {...rest}>{children}</a>;
-      return <a href={`/?path=${encodeURIComponent(target)}`} {...rest} onClick={(e) => { e.preventDefault(); navigate(target); }}>{children}</a>;
+      // Resolves outside the library (or nowhere): plain text, not a dead link.
+      if (!target) return <span>{children}</span>;
+      return (
+        <a
+          href={`/?path=${encodeURIComponent(target)}`}
+          {...rest}
+          onClick={(e) => {
+            e.preventDefault();
+            // Cmd/Ctrl-click keeps reading here and opens the target as a background tab.
+            if (e.metaKey || e.ctrlKey) openTab(target, filePath);
+            else navigate(target);
+          }}
+          // Middle-click: background tab; stop the browser opening its own window.
+          onAuxClick={(e) => { if (e.button === 1) { e.preventDefault(); openTab(target, filePath); } }}
+        >
+          {children}
+        </a>
+      );
     },
     img({ src, alt, node: _n, ...rest }) {
       const resolved = typeof src === 'string' && !/^[a-z][a-z0-9+.-]*:/i.test(src) ? resolveRelative(filePath, src) : null;

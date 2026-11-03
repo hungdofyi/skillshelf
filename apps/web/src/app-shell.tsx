@@ -14,6 +14,7 @@ import { StatusBar } from './components/shell/status-bar';
 import { useCollapsiblePanel } from './components/shell/use-collapsible-panel';
 import { JobsDrawer } from './components/jobs/jobs-drawer';
 import { ConnectDialog } from './components/connect/connect-dialog';
+import { SummarizeDialog } from './views/book/summarize-dialog';
 import { CreateSkillDialog } from './components/skill/create-skill-dialog';
 import { MainPane } from './views/main-pane';
 
@@ -33,6 +34,7 @@ export function AppShell() {
   const jobsOpen = useUi((s) => s.jobsOpen);
   const connectOpen = useUi((s) => s.connectOpen);
   const createFor = useUi((s) => s.createSkillFor);
+  const summarizeFor = useUi((s) => s.summarizeFor);
   useGlobalShortcuts(path);
 
   // Every navigation opens (or focuses) a document tab; the URL stays the source of truth.
@@ -91,6 +93,7 @@ export function AppShell() {
       </div>
       <StatusBar path={path} />
       <ConnectDialog open={connectOpen} onOpenChange={(o) => setUi({ connectOpen: o })} />
+      {summarizeFor !== false && <SummarizeDialog slug={summarizeFor} onClose={() => setUi({ summarizeFor: false })} />}
       {createFor !== false && <CreateSkillDialog preselect={createFor} onClose={() => setUi({ createSkillFor: false })} />}
     </div>
   );

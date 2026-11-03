@@ -6,6 +6,7 @@ import { useFile, useRun } from '../../api/queries';
 import { navigate } from '../../lib/location-state';
 import { formatTime } from '../../lib/format';
 import { useUi } from '../../lib/ui-store';
+import { effortLabel } from '../../components/skill/effort-select';
 import { ErrorState, LoadingBlock, SectionTitle } from '../../components/ui/misc';
 import { parseEvalFile } from '../skill/eval-cases-editor';
 import { ArmSummary } from './arm-summary';
@@ -42,7 +43,7 @@ export function EvalRunView({ skill, runId }: { skill: string; runId: string }) 
           <p className="mt-1 flex flex-wrap gap-x-3 text-muted">
             <button className="fx font-medium text-accent hover:underline" onClick={() => navigate(`skills/${skill}`, { tab: 'evals' })}>{skill}</button>
             <span>Started {formatTime(run.startedAt)}</span>
-            <span>{run.model}, judged by {run.judgeModel}</span>
+            <span>{run.model}{run.effort ? `, ${effortLabel(run.effort)} effort` : ''}, judged by {run.judgeModel}{run.judgeEffort ? ` (${effortLabel(run.judgeEffort)})` : ''}</span>
           </p>
         </header>
 

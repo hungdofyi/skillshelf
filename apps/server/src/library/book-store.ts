@@ -2,10 +2,11 @@
  * Read-only access to converted books: library/books/<slug>/{book.json, markdown/*.md, source/*}.
  * Shared by the books routes, the skill generator and the MCP server.
  */
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
-import type { BookChapter, BookManifest, BookSummary } from '@b2s/shared';
+import type { BookChapter, BookManifest, BookSummary, BookSummaryFile } from '@b2s/shared';
 import { HttpError } from '../http-error.js';
+import { parseFrontmatter } from './frontmatter.js';
 import { resolveLibraryPath } from './library-paths.js';
 
 export class BookStore {
@@ -49,6 +50,34 @@ export class BookStore {
     return { chapter, content: readFileSync(file, 'utf8') };
   }
 
+  /** Generated summaries (books/<slug>/summaries/*.md), newest first, described by their frontmatter. */
+  listSummaries(slug: string): BookSummaryFile[] {
+    const dir = path.join(this.booksDir, slug, 'summaries');
+    if (!existsSync(dir)) return [];
+    const str = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : undefined);
+    const out: BookSummaryFile[] = [];
+    for (const name of readdirSync(dir)) {
+      if (!name.endsWith('.md') || name.startsWith('.')) continue;
+      const file = path.join(dir, name);
+      try {
+        const stat = statSync(file);
+        if (!stat.isFile()) continue;
+        const { data, body } = parseFrontmatter(readFileSync(file, 'utf8'));
+        const settings = data.settings && typeof data.settings === 'object' && !Array.isArray(data.settings) ? (data.settings as Record<string, unknown>) : undefined;
+        const generated = data['generated-at'];
+        out.push({
+          path: `books/${slug}/summaries/${name}`,
+          title: str(data.title) ?? /^#\s+(.+)$/m.exec(body)?.[1]?.trim() ?? name.replace(/\.md$/, ''),
+          createdAt: str(generated) ?? (generated instanceof Date ? generated.toISOString() : undefined) ?? stat.mtime.toISOString(),
+          ...(settings ? { settings: { length: str(settings.length), structure: str(settings.structure), focus: str(settings.focus) } } : {}),
+        });
+      } catch {
+        // An unreadable file is simply not listed.
+      }
+    }
+    return out.sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? '') || b.path.localeCompare(a.path));
+  }
+
   private summarize(slug: string): BookSummary {
     const dir = path.join(this.booksDir, slug);
     const manifestFile = path.join(dir, 'book.json');
@@ -68,6 +97,7 @@ export class BookStore {
       path: `books/${slug}`,
       manifest,
       status: manifest ? 'converted' : existsSync(failedMarker) ? 'failed' : 'pending',
+      summaries: manifest ? this.listSummaries(slug) : undefined,
       sourceFile: sourceFile ? `books/${slug}/source/${sourceFile}` : undefined,
     };
   }

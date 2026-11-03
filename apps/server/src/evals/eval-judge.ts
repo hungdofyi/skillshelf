@@ -1,5 +1,5 @@
 /** LLM-as-judge: grades one answer against its expectations with a tool-less Claude call. */
-import type { ExpectationResult } from '@b2s/shared';
+import type { Effort, ExpectationResult } from '@b2s/shared';
 import { type ClaudeEvent, runClaude } from '../claude/claude-runner.js';
 import { renderPromptFile } from '../generation/render-prompt.js';
 
@@ -67,6 +67,8 @@ export interface GradeInput {
   promptsDir: string;
   cwd: string;
   model: string;
+  /** Judge effort; callers pass the fixed JUDGE_EFFORT. */
+  effort: Effort;
   prompt: string;
   expectedOutput?: string;
   answer: string;
@@ -92,6 +94,7 @@ export async function gradeAnswer(input: GradeInput): Promise<Verdict> {
       cwd: input.cwd,
       prompt,
       model: input.model,
+      effort: input.effort,
       tools: [],
       jsonSchema: JUDGE_SCHEMA,
       permissionMode: 'dontAsk',

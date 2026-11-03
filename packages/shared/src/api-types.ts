@@ -17,6 +17,7 @@
  *  GET    /api/books/:slug                    -> BookSummary
  *  POST   /api/books/import                   multipart: file (pdf|epub), slug?  -> { book: BookSummary, job: Job }
  *  POST   /api/books/:slug/convert            <- ConvertRequest       -> { job: Job }
+ *  POST   /api/books/:slug/summarize          <- SummarizeBookRequest -> { job: Job, path: string }
  *
  *  GET    /api/skills                         -> SkillSummary[]
  *  GET    /api/skills/:name                   -> SkillSummary
@@ -46,7 +47,7 @@
  *  ALL    /mcp                                MCP endpoint with `Authorization: Bearer <token>`
  */
 
-import type { BookSummary, EvalArm, SkillSummary } from './library-types.js';
+import type { BookSummary, BookSummaryFile, EvalArm, SkillSummary } from './library-types.js';
 
 export type GitFileStatus = 'modified' | 'added' | 'untracked' | 'deleted' | 'renamed' | 'ignored';
 
@@ -109,8 +110,31 @@ export interface GenerateSkillRequest {
   /** Limit to these chapter indexes per book slug; all chapters when omitted. */
   chapters?: Record<string, number[]>;
   model?: string;
+  /** Reasoning effort. Default high. */
+  effort?: Effort;
   /** Also write evals/evals.json. Default true. */
   withEvals?: boolean;
+}
+
+/** Claude Code `--effort` level: how much reasoning a run spends. */
+export const EFFORTS = ['low', 'medium', 'high', 'xhigh', 'max'] as const;
+export type Effort = (typeof EFFORTS)[number];
+
+export type SummaryLength = 'brief' | 'standard' | 'detailed';
+export type SummaryStructure = 'chapters' | 'ideas' | 'both';
+
+export interface SummarizeBookRequest {
+  /** brief = 2-3 sentences per chapter; standard = a short paragraph + 3-5 key ideas; detailed = several paragraphs + ideas + examples. Default standard. */
+  length?: SummaryLength;
+  /** chapters = chapter-by-chapter guide; ideas = key ideas across the book; both. Default both. */
+  structure?: SummaryStructure;
+  /** Optional reader context (max 500 chars); adds per-chapter relevance and a suggested reading path. */
+  focus?: string;
+  /** Chapter indexes to cover; all when omitted. */
+  chapters?: number[];
+  model?: string;
+  /** Reasoning effort. Default medium. */
+  effort?: Effort;
 }
 
 export interface ReviseSkillRequest {
@@ -118,6 +142,8 @@ export interface ReviseSkillRequest {
   /** Include failed cases from this eval run as context for the revision. */
   evalRunId?: string;
   model?: string;
+  /** Reasoning effort. Default high. */
+  effort?: Effort;
 }
 
 export type InstallTarget = 'user' | 'project';
@@ -140,11 +166,13 @@ export interface RunEvalRequest {
   caseIds?: Array<string | number>;
   model?: string;
   judgeModel?: string;
+  /** Effort of the agent arms. Default medium. The judge always runs at low. */
+  effort?: Effort;
   /** Parallel claude runs. Default 2. */
   concurrency?: number;
 }
 
-export type JobKind = 'convert' | 'generate' | 'revise' | 'eval';
+export type JobKind = 'convert' | 'generate' | 'revise' | 'eval' | 'summarize';
 export type JobStatus = 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled';
 
 export interface Job {
@@ -159,7 +187,7 @@ export interface Job {
   finishedAt?: string;
   progress?: { current: number; total: number; label?: string };
   error?: string;
-  /** Kind-specific result, e.g. { runId } for eval, { skill } for generate. */
+  /** Kind-specific result, e.g. { runId } for eval, { skill } for generate, { path } for summarize. */
   result?: Record<string, unknown>;
 }
 
@@ -203,4 +231,4 @@ export interface McpInfo {
   tools: Array<{ name: string; description: string }>;
 }
 
-export type { BookSummary, SkillSummary };
+export type { BookSummary, BookSummaryFile, SkillSummary };

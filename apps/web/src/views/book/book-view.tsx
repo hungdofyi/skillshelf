@@ -1,9 +1,9 @@
-import { ScrollText, Wand2 } from 'lucide-react';
-import type { BookSummary } from '@b2s/shared';
+import { BookText, ScrollText, Wand2 } from 'lucide-react';
+import type { BookSummary, BookSummaryFile } from '@b2s/shared';
 import { useBook, useJobs } from '../../api/queries';
 import { navigate } from '../../lib/location-state';
-import { openCreateSkill, openJob, useUi } from '../../lib/ui-store';
-import { formatNumber } from '../../lib/format';
+import { openCreateSkill, openJob, openSummarize, useUi } from '../../lib/ui-store';
+import { formatNumber, formatTime } from '../../lib/format';
 import { Button } from '../../components/ui/button';
 import { EmptyState, ErrorState, LoadingBlock, Pill, SectionTitle } from '../../components/ui/misc';
 import { ReconvertPanel } from './reconvert-panel';
@@ -27,7 +27,7 @@ function ChapterTable({ book }: { book: BookSummary }) {
             <tr key={c.index} className="border-b border-line last:border-0 hover:bg-hover">
               <td className="tnum px-3 py-1.5 text-right text-faint">{c.index + 1}</td>
               <td className="px-3 py-0">
-                <button onClick={() => navigate(`${book.path}/${c.file}`)} className="block w-full truncate py-1.5 text-left hover:text-accent" style={{ paddingLeft: Math.max(0, c.level - 1) * 14 }} title={c.file}>
+                <button onClick={() => navigate(`${book.path}/${c.file}`)} className="block w-full truncate py-1.5 text-left hover:text-accent" title={c.file}>
                   {c.title}
                 </button>
               </td>
@@ -38,6 +38,34 @@ function ChapterTable({ book }: { book: BookSummary }) {
         </tbody>
       </table>
     </div>
+  );
+}
+
+const LENGTH_LABEL: Record<string, string> = { brief: 'Brief', standard: 'Standard', detailed: 'Detailed' };
+const STRUCTURE_LABEL: Record<string, string> = { both: 'Ideas and chapters', chapters: 'By chapter', ideas: 'Key ideas' };
+
+/** One line of settings, e.g. "Standard · Ideas and chapters · for: a PM improving onboarding". */
+function describeSettings(s: BookSummaryFile['settings']): string {
+  if (!s) return '';
+  return [s.length && (LENGTH_LABEL[s.length] ?? s.length), s.structure && (STRUCTURE_LABEL[s.structure] ?? s.structure), s.focus && `for ${s.focus}`].filter(Boolean).join(' · ');
+}
+
+/** Existing summaries, newest first; each opens in a tab. */
+function SummaryList({ summaries }: { summaries: BookSummaryFile[] }) {
+  return (
+    <ul className="overflow-hidden rounded-lg shadow-raised">
+      {summaries.map((s) => (
+        <li key={s.path} className="border-b border-line last:border-0 hover:bg-hover">
+          <button onClick={() => navigate(s.path)} className="flex w-full items-baseline gap-3 px-3 py-2 text-left" title={s.path}>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate font-medium hover:text-accent">{s.title}</span>
+              {s.settings && <span className="block truncate text-caption text-muted">{describeSettings(s.settings)}</span>}
+            </span>
+            {s.createdAt && <time dateTime={s.createdAt} className="tnum shrink-0 text-caption text-faint">{formatTime(s.createdAt)}</time>}
+          </button>
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -61,7 +89,12 @@ export function BookView({ slug }: { slug: string }) {
             <p className="mt-1.5 text-muted">{m?.authors.length ? m.authors.join(', ') : book.sourceFile ?? 'Unknown author'}{m && <span className="tnum"> · {m.chapters.length} chapters · {formatNumber(m.stats.words)} words</span>}</p>
           </div>
           {/* With the inspector closed, its primary action comes back to the page so it is never out of reach. */}
-          {m && !inspectorOpen && <Button variant="primary" icon={<Wand2 size={14} />} onClick={() => openCreateSkill(slug)}>Create skill from this book</Button>}
+          {m && (
+            <div className="flex flex-wrap items-center gap-2">
+              <Button icon={<BookText size={14} />} onClick={() => openSummarize(slug)}>Summarize</Button>
+              {!inspectorOpen && <Button variant="primary" icon={<Wand2 size={14} />} onClick={() => openCreateSkill(slug)}>Create skill from this book</Button>}
+            </div>
+          )}
         </header>
 
         {!m && (
@@ -84,6 +117,13 @@ export function BookView({ slug }: { slug: string }) {
           <section aria-label="Converter notes">
             <SectionTitle>Converter notes</SectionTitle>
             <ul className="list-disc space-y-0.5 pl-5 text-muted marker:text-faint">{m.stats.warnings.map((w, i) => <li key={i}>{w}</li>)}</ul>
+          </section>
+        )}
+
+        {m && book.summaries && book.summaries.length > 0 && (
+          <section aria-label="Summaries">
+            <SectionTitle aside={<span className="tnum text-caption text-faint">{book.summaries.length}</span>}>Summaries</SectionTitle>
+            <SummaryList summaries={book.summaries} />
           </section>
         )}
 

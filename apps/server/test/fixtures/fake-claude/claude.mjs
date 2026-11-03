@@ -3,6 +3,7 @@
 //   FAKE_CLAUDE_AUTH      claude.ai (default) | api-key | logged-out
 //   FAKE_CLAUDE_LOG       file; one JSON line {argv,cwd,envKeys,prompt} appended per print-mode call
 //   FAKE_CLAUDE_GENERATE  ok (default) | bad-first (broken link, fixed by the lint pass) | always-bad | none
+//   FAKE_CLAUDE_SUMMARY   ok (default) | broken-link | bad-frontmatter | no-frontmatter | empty | none
 //   FAKE_CLAUDE_SLEEP_MS  wait this long after the init event (cancel tests)
 //   FAKE_CLAUDE_JUDGE     garbage = judge returns unparsable text
 import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
@@ -91,6 +92,18 @@ if (title.startsWith('# Generate a skill')) {
     }),
   );
   await finish('Generated.');
+}
+if (title.startsWith('# Summarize a book')) {
+  const out = /^Output file: (\S+\.md)$/m.exec(prompt)[1];
+  const mode = env.FAKE_CLAUDE_SUMMARY ?? 'ok';
+  const rows = [...prompt.matchAll(/^\| (\d+) \| (.+?) \| (\.\.\/\S+\.md) \|/gm)].map((m) => ({ title: m[2], link: m[3] }));
+  tool('Read', { file_path: path.resolve(out.replace(/summaries\/.*$/, 'book.json')) });
+  if (mode === 'none') await finish('did nothing');
+  const sections = rows.map((r) => `## [${r.title}](${r.link})\n\nSummary of ${r.title}.\n\n**Read it if** you care.\n`).join('\n');
+  const extra = mode === 'broken-link' ? '\nSee [Ghost](../markdown/99-ghost.md) and [outside](../../../secret.md) and [web](https://example.com/a.md).\n' : '';
+  const head = { ok: '---\ntitle: Fake summary\n---\n\n', 'bad-frontmatter': '---\ntitle: [unclosed\n---\n\n', 'no-frontmatter': '', 'broken-link': '---\ntitle: Fake summary\n---\n\n', empty: '---\ntitle: x\n---\n' }[mode] ?? '';
+  write(out, mode === 'empty' ? head : `${head}# Fake summary\n\n${sections}${extra}`);
+  await finish('Summarized.');
 }
 if (title.startsWith('# Fix lint errors')) {
   const name = path.basename(outDir);

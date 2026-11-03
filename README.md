@@ -32,7 +32,8 @@ pnpm dev                # API on :4317 (+ MCP-only :4318), UI on http://127.0.0.
 ## Using it
 
 1. **Import** a PDF/EPUB (button or drag-drop onto the tree). The converter splits it into chapters using the book's table of contents (`library/books/<slug>/markdown/`) and writes `book.json`.
-2. **Create skill** from the book view: describe the goal, pick chapters (skip boilerplate like "Praise"), choose a model. A headless Claude Code session reads the chapters and writes the skill. Watch progress in the Jobs drawer.
+1b. **Summarize** (book view or inspector): pick length (brief, standard, detailed), structure (by chapter, key ideas, both), an optional focus ("I'm a PM improving onboarding" adds High/Medium/Low relevance per chapter and a reading path) and the chapters. The summary is written to `library/books/<slug>/summaries/` and every chapter heading links to its chapter file; relative links in any Markdown preview open in-app as tabs (middle-click or ⌘-click opens a background tab).
+2. **Create skill** from the book view: describe the goal, pick chapters (skip boilerplate like "Praise"), choose a model and an effort level (Low to Max; every Claude job has one, defaults: High for generate/revise, Medium for summaries and eval runs, and the eval judge is always Low). A headless Claude Code session reads the chapters and writes the skill. Watch progress in the Jobs drawer.
 3. **Review** the skill view: lint (Agent Skills spec), SKILL.md preview/edit, references, eval cases.
 4. **Run evals**: each case runs once with the skill installed and once without, then a judge grades each expectation with evidence. The run view shows pass rate, mean score, trigger accuracy and per-case answers.
 5. **Revise**: give feedback (optionally "include failures from run X"); a backup is taken first (`.data/skill-backups/`).
@@ -47,7 +48,7 @@ Left rail: Library, Books, Skills, Evals, Search, Activity (⌃1–⌃6), then C
 ## Billing and safety
 
 - **No API key is ever used.** Every `claude` child process runs with all `ANTHROPIC_*` / `CLAUDE_CODE_*` variables stripped, and the server refuses to start one unless `claude auth status` reports the claude.ai login. Runs use your subscription. The UI shows the number of runs before an eval starts.
-- Generation can only write inside `skills/<name>/`, and nothing gets Bash or web access. Eval runs execute in throwaway temp sandboxes.
+- Generation can only write inside `skills/<name>/` (summaries only inside `books/<slug>/summaries/`), and nothing gets Bash or web access. Eval runs execute in throwaway temp sandboxes.
 - The public tunnel reaches a **separate MCP-only listener** (port 4318). The `/api` routes (file edits, token, tunnel control) are local-only and also reject non-local `Host` headers.
 - The MCP token sits in the URL path, so treat the URL like a password. Rotate it from the Connect dialog; stop the tunnel when you're done.
 - Books are copyrighted: original files and converted chapter text are gitignored; generated skills paraphrase and cite chapters.

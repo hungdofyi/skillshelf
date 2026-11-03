@@ -5,11 +5,14 @@
  *   books/<book-slug>/source/<original.pdf|epub>   original upload (gitignored)
  *   books/<book-slug>/book.json                     BookManifest, written by the Python converter
  *   books/<book-slug>/markdown/NN-<chapter>.md      one Markdown file per chapter
+ *   books/<book-slug>/summaries/*.md                generated summaries (frontmatter + chapter links)
  *   skills/<skill-name>/SKILL.md                    Agent Skill entry point (YAML frontmatter + body)
  *   skills/<skill-name>/references/*.md             detail files loaded on demand
  *   skills/<skill-name>/evals/evals.json            EvalFile
  *   evals/<skill-name>/<run-id>/run.json            EvalRun (results of one eval run)
  */
+
+import type { Effort } from './api-types.js';
 
 export const BOOK_MANIFEST_SCHEMA_VERSION = 1 as const;
 
@@ -113,6 +116,16 @@ export interface SkillSummary {
   latestRun?: { id: string; finishedAt?: string; passRate: Partial<Record<EvalArm, number>> };
 }
 
+/** One generated summary under books/<slug>/summaries/, described by its frontmatter. */
+export interface BookSummaryFile {
+  /** Library-relative path, e.g. "books/x/summaries/20261103-1500-standard-both.md". */
+  path: string;
+  title: string;
+  /** From frontmatter `generated-at`, else the file's mtime. */
+  createdAt?: string;
+  settings?: { length?: string; structure?: string; focus?: string };
+}
+
 export interface BookSummary {
   slug: string;
   path: string;
@@ -120,6 +133,8 @@ export interface BookSummary {
   /** Set while the book has a source file but no manifest yet. */
   status: 'converted' | 'pending' | 'failed';
   sourceFile?: string;
+  /** Generated summaries, newest first. */
+  summaries?: BookSummaryFile[];
 }
 
 /** Skill-creator compatible eval file: skills/<name>/evals/evals.json */
@@ -187,6 +202,9 @@ export interface EvalRun {
   skillHash: string;
   model: string;
   judgeModel: string;
+  /** Effort of the agent arms and of the judge (always low); absent on runs made before the setting existed. */
+  effort?: Effort;
+  judgeEffort?: Effort;
   arms: EvalArm[];
   caseIds: string[];
   status: 'running' | 'succeeded' | 'failed' | 'cancelled';

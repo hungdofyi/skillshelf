@@ -4,7 +4,7 @@
  */
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import type { LintIssue } from '@b2s/shared';
+import type { Effort, LintIssue } from '@b2s/shared';
 import { type ClaudeEvent, runClaude } from '../claude/claude-runner.js';
 import type { AppContext } from '../app-context.js';
 import type { JobContext } from '../jobs/job-manager.js';
@@ -77,6 +77,7 @@ export interface FinalizeOptions {
   job: JobContext;
   skillName: string;
   model: string;
+  effort: Effort;
   /** Provenance to stamp; re-applied after a lint fix pass. */
   metadata: Record<string, string>;
 }
@@ -85,7 +86,7 @@ export interface FinalizeOptions {
  * Stamp provenance, lint, and when errors exist run one fix pass with the agent, then lint again.
  * Throws with the remaining errors when the skill still fails.
  */
-export async function finalizeSkill({ ctx, job, skillName, model, metadata }: FinalizeOptions): Promise<void> {
+export async function finalizeSkill({ ctx, job, skillName, model, effort, metadata }: FinalizeOptions): Promise<void> {
   const skillDir = ctx.skills.skillDir(skillName);
   const settle = () => {
     if (!existsSync(path.join(skillDir, 'SKILL.md'))) return;
@@ -105,6 +106,7 @@ export async function finalizeSkill({ ctx, job, skillName, model, metadata }: Fi
       cwd: ctx.config.libraryDir,
       prompt,
       model,
+      effort,
       ...authoringToolScope(skillName),
       signal: job.signal,
       onEvent: logClaudeEvent(job),
