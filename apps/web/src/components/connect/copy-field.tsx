@@ -6,8 +6,9 @@ import { OneLine } from '../ui/one-line';
 /**
  * Read-only command, URL or prompt with its Copy button inside the same 32px block. The value stays on
  * one line: long values fade at the overflowing edge and scroll sideways, never wrap or show a scrollbar.
+ * `display` replaces the visible text (e.g. a URL with its secret masked); Copy always copies `value`.
  */
-export function CopyField({ value, label }: { value: string; label: string }) {
+export function CopyField({ value, label, display }: { value: string; label: string; display?: string }) {
   const [done, setDone] = useState(false);
   const copy = async () => {
     if (await copyText(value)) {
@@ -17,7 +18,7 @@ export function CopyField({ value, label }: { value: string; label: string }) {
   };
   return (
     <div className="flex h-8 min-w-0 items-center gap-1 rounded-md bg-sunken pl-2.5 pr-1">
-      <OneLine label={label} className="flex-1 font-mono text-caption text-fg">{value}</OneLine>
+      <OneLine label={label} className="flex-1 font-mono text-caption text-fg">{display ?? value}</OneLine>
       <button
         type="button"
         onClick={copy}

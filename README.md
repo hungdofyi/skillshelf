@@ -43,7 +43,7 @@ Everything lives in plain files under `library/` (set `LIBRARY_DIR` to use anoth
 
 ### Interface
 
-Left rail: Library, Books, Skills, Evals, Search, Activity (⌃1–⌃6), then Connect, Settings and your Claude account. The sidebar follows the rail; opened items become tabs (⌥W closes one, ⌘K / ⌘P quick-opens anything). The right inspector shows the outline, metadata, lint and eval results for the active item; the status bar shows git, Claude login, MCP/tunnel and running jobs.
+Left rail: Library, Books, Skills, Evals, Search, Activity (⌃1–⌃6), then Connect and Settings (theme, your Claude account, library path). The account is shown only in the Settings menu, and MCP URLs display the token masked (Copy still copies the real URL), so the app is safe to screen-share. The sidebar follows the rail; opened items become tabs (⌥W closes one, ⌘K / ⌘P quick-opens anything). The right inspector shows the outline, metadata, lint and eval results for the active item; the status bar shows git, Claude login, MCP/tunnel and running jobs.
 
 ## Billing and safety
 

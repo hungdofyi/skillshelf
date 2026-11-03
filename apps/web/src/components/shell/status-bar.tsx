@@ -64,7 +64,7 @@ export function StatusBar({ path }: { path: string }) {
           <GitBranch size={12} aria-hidden />{git.branch ?? 'detached'}{!!git.dirty && <span className="tnum">· {git.dirty} changed</span>}
         </Item>
       ) : tree ? <Item>Not a git repo</Item> : null}
-      <Item title={c?.ready ? `claude.ai login${c.orgName ? `, ${c.orgName}` : ''}` : c?.reason}>
+      <Item title={c?.ready ? 'claude.ai login (account details in Settings)' : c?.reason}>
         <Dot tone={claude.isPending ? 'idle' : c?.ready ? 'ok' : 'danger'} />
         {claude.isPending ? 'Checking Claude' : c?.ready ? 'Claude ready' : 'Claude not ready'}
       </Item>

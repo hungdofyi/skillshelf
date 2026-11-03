@@ -6,6 +6,7 @@ import { Dialog, ConfirmDialog } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { ErrorState, LoadingBlock, Pill } from '../ui/misc';
 import { CopyField } from './copy-field';
+import { maskMcpUrl } from './mask-mcp-url';
 
 function Section({ title, children, aside }: { title: string; children: ReactNode; aside?: ReactNode }) {
   return (
@@ -64,7 +65,7 @@ function ConnectBody({ info }: { info: McpInfo }) {
         <TunnelControls info={info} />
         {info.publicUrl ? (
           <>
-            <CopyField value={info.publicUrl} label="Public MCP URL" />
+            <CopyField value={info.publicUrl} display={maskMcpUrl(info.publicUrl)} label="Public MCP URL" />
             <p>In Claude.ai open <b className="font-medium text-fg">Settings, Connectors, Add custom connector</b> and paste this URL. Leave authentication empty: the secret is part of the URL.</p>
           </>
         ) : (
@@ -76,7 +77,7 @@ function ConnectBody({ info }: { info: McpInfo }) {
         <p>Turn on <b className="font-medium text-fg">Developer mode</b> in ChatGPT settings, then add an MCP server with the same public URL as above. Choose no authentication.</p>
         {!info.publicUrl && <p className="text-faint">Start the tunnel in the Claude.ai section first.</p>}
         <p>Local URL, for clients on this machine:</p>
-        <CopyField value={info.localUrl} label="Local MCP URL" />
+        <CopyField value={info.localUrl} display={maskMcpUrl(info.localUrl)} label="Local MCP URL" />
       </Section>
 
       <Section title="Access token">

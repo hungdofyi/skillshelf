@@ -46,46 +46,31 @@ const RailButton = forwardRef<HTMLButtonElement, ButtonHTMLAttributes<HTMLButton
   },
 );
 
-function AccountButton() {
-  const { data: s, isPending, refetch } = useClaudeStatus();
-  const ready = !!s?.ready;
-  const initial = (s?.email?.[0] ?? 'C').toUpperCase();
-  const label = isPending ? 'Checking Claude login' : ready ? `Claude: ${s?.email ?? 'signed in'}` : `Claude: ${s?.reason ?? 'not ready'}`;
-  const items = [
-    ready
-      ? { label: `Signed in as ${s?.email ?? 'claude.ai user'}` }
-      : { label: s?.reason ?? (s?.installed ? 'Not signed in to claude.ai' : 'Claude Code is not installed') },
-    ...(s?.orgName ? [{ label: s.orgName }] : []),
-    { label: 'Runs use claude.ai, never an API key' },
-    { label: 'Check login again', icon: <RefreshCw size={14} />, separated: true, onSelect: () => void refetch() },
-  ];
-  return (
-    <DropdownMenu
-      side="right"
-      align="end"
-      items={items}
-      trigger={
-        <RailButton label={label}>
-          <span className="relative flex size-6 items-center justify-center rounded-full bg-accent-soft text-micro font-semibold text-accent">
-            {initial}
-            <span aria-hidden className={clsx('absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full ring-2 ring-panel', isPending ? 'bg-faint' : ready ? 'bg-ok' : 'bg-danger')} />
-          </span>
-        </RailButton>
-      }
-    />
-  );
-}
-
+/**
+ * Settings menu: theme, the Claude account, the library folder. The account (email, organisation) is
+ * shown only here, behind a click, so it never sits on screen in screenshots or screen shares; the
+ * status bar keeps the plain "Claude ready" signal.
+ */
 function SettingsButton() {
   const { choice, set } = useTheme();
   const { data: tree } = useTree();
+  const { data: s, isPending, refetch } = useClaudeStatus();
   const dir = tree?.libraryDir;
+  const account = isPending
+    ? { label: 'Checking Claude login' }
+    : s?.ready
+      ? { label: `Signed in as ${s.email ?? 'claude.ai user'}` }
+      : { label: s?.reason ?? (s?.installed ? 'Not signed in to claude.ai' : 'Claude Code is not installed') };
   return (
     <DropdownMenu
       side="right"
       align="end"
       items={[
         ...THEMES.map(({ value, label, Icon }) => ({ label, icon: <Icon size={14} />, checked: choice === value, onSelect: () => set(value) })),
+        { ...account, separated: true },
+        ...(s?.ready && s.orgName ? [{ label: s.orgName }] : []),
+        { label: 'Runs use claude.ai, never an API key' },
+        { label: 'Check login again', icon: <RefreshCw size={14} />, onSelect: () => void refetch() },
         ...(dir
           ? [
               { label: `Library: ${abbreviateHome(dir)}`, separated: true },
@@ -98,7 +83,7 @@ function SettingsButton() {
   );
 }
 
-/** Left rail: sidebar views on top, activity below them, connect / settings / account at the bottom. */
+/** Left rail: sidebar views on top, activity below them, connect and settings at the bottom. */
 export function AppRail() {
   const rail = useUi((s) => s.rail);
   const sidebarOpen = useUi((s) => s.sidebarOpen);
@@ -119,7 +104,6 @@ export function AppRail() {
       <span className="flex-1" />
       <RailButton label="Connect over MCP" onClick={() => setUi({ connectOpen: true })}><Plug size={18} strokeWidth={1.75} aria-hidden /></RailButton>
       <SettingsButton />
-      <AccountButton />
     </nav>
   );
 }
