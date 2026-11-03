@@ -34,11 +34,9 @@ Write for that reader: concrete, procedural, skimmable, no filler.
 
 ## Process
 
-Work in this order. Do not skip the reading step.
-
-1. **Orient.** Read each `book.json` and study the chapter tables above. Decide which chapters bear on the goal. Be selective: a good skill uses the 20-40% of a book that matters for this task.
-2. **Read the relevant chapters fully**, one at a time. Skim (first screen, headings) the chapters you ruled out, in case they hold something the titles hid. Take notes on: frameworks and named models, step-by-step methods, decision rules and thresholds, checklists, worked examples, common mistakes, vocabulary the book defines.
-3. **Design the skill** before writing: what are the 3-6 phases of doing this goal well? what does the final deliverable look like? which book ideas drive each phase? which topics deserve their own reference file?
+1. **Orient.** Pick chapters from the tables above; they hold everything in `book.json` you need, so do not open it. A chapter qualifies when it holds a method, decision rule, threshold, checklist or worked example the skill's workflow will use. Skip front matter, praise, forewords and chapters whose title rules them out. When a title does not tell you, read its first 40 lines before deciding.
+2. **Read the qualifying chapters fully**, one at a time. Take notes on: frameworks and named models, step-by-step methods, decision rules and thresholds, checklists, worked examples, common mistakes, vocabulary the book defines.
+3. **Design the skill** before writing: what are the 3-6 phases of doing this goal well? what does the final deliverable look like? which book ideas drive each phase? which topics deserve their own reference file? what should the agent do when the user's material is already good?
 4. **Write the files** (specs below).
 5. **Verify** (checklist at the end), then reply with a short summary.
 
@@ -78,6 +76,8 @@ Fewer than 300 lines, imperative voice, English unless the user guidance says ot
 
 Do not put long explanations in the body; push depth into references. Do not mention the books' authors as authorities in the body ("Author says ..."); state the principle and cite in the references.
 
+If the skill judges the user's material (a review, audit, critique or diagnosis), build calibration into it: the workflow records what already meets each check, a check that passes produces no finding, the output template has a section for what already works and says "None" in any section with nothing real to report, and each severity level is defined by its consequence for the user's goal. Without this the agent hunts for faults in good input, fills every template slot and inflates severity.
+
 ## File group 2: `{{output_dir}}references/*.md`
 
 Create 4-10 files, flat in `references/` (no subfolders), named in kebab-case after the topic, for example `activation-metrics.md`, `friction-checklist.md`, `anti-patterns.md`, `glossary.md`. Organise **by what the agent needs to do the task**, not by book chapter. Typical useful files:
@@ -92,9 +92,10 @@ Create 4-10 files, flat in `references/` (no subfolders), named in kebab-case af
 Rules for every reference file:
 
 - Start with `# Title`, then a one-line statement of when to read the file. If the file exceeds 100 lines, add a table of contents right after it.
-- Cite sources inline in the form `(Book Title, ch. 3 "Chapter Title")` using the `Ch` number and title from the chapter tables above. Cite at the claim level, not once per file. Several books on the same point: cite each, and say where they disagree.
+- Cite sources inline in the form `(Book Title, ch. 3 "Chapter Title")` using the `Ch` number and title from the chapter tables above. The number is this library's chapter index, not the printed book's chapter number, so the title is what lets a reader find the passage: include it the first time a file cites that chapter; later citations in the same file may shorten to `(Book Title, ch. 3)`. Cite at the claim level, not once per file. Several books on the same point: cite each, and say where they disagree.
 - Paraphrase. Quote at most two consecutive sentences, only when the exact wording matters, and mark them as quotes. Never reproduce long passages, full lists copied from a page, or whole sections. Facts, methods and ideas are yours to restate; the book's prose is not.
-- Prefer lists, tables and decision rules over paragraphs. Keep each file focused: roughly 60-250 lines.
+- Prefer lists, tables and decision rules over paragraphs. Keep each file focused: 60-250 lines.
+- A worked example of the deliverable shows a mixed case, where some checks pass and some fail. The agent copies the example's tone and severity mix, so an all-failing example teaches it to fail everything.
 - No duplication across files; link to another reference instead.
 
 {{#if with_evals}}
@@ -127,8 +128,10 @@ Test cases the tool will later run with and without the skill, then grade. Write
 
 Requirements:
 
-- **6-8 normal cases** (ids 1..N), each a prompt exactly as a busy user would type it: first person, casual, with the concrete inputs **inlined in the prompt text** (a described or pasted onboarding flow, a snippet, a list of metrics, a scenario with numbers). The agent that runs the eval cannot see any file you do not inline, so do not use the `files` key. Vary the situations: different industries or contexts, different depths of request, at least one with incomplete information, at least one with a subtle problem hidden in the input.
-- **3-6 expectations per normal case.** Each is one statement a grader can decide pass/fail from the answer text alone. Make them specific to the book's ideas: name the framework, threshold, diagnosis or recommendation a skill-guided answer should reach ("Flags that the account-creation step comes before any value is shown and recommends deferring it"), not generic good advice ("Gives useful recommendations"). Include some that test the output format from `SKILL.md` ("Rates each finding with a severity level"). Avoid expectations that a competent agent without the skill would pass trivially; at least half of each case's expectations should require knowledge that is in the references.
+- **6-8 normal cases** (ids 1..N), each a prompt exactly as a busy user would type it: first person, casual, with the concrete inputs **inlined in the prompt text** (a described or pasted onboarding flow, a snippet, a list of metrics, a scenario with numbers). The agent that runs the eval cannot see any file you do not inline, so do not use the `files` key. Vary the situations: different industries or contexts, different depths of request, at least one with incomplete information, at least one with a subtle problem hidden in the input, and at least one where the input is already good and a strong answer mostly confirms it.
+- **3-6 expectations per normal case.** Each is one statement a grader can decide pass/fail from the answer text alone. Make them specific to the book's ideas: name the framework, threshold, diagnosis or recommendation a skill-guided answer should reach ("Flags that the account-creation step comes before any value is shown"), not generic good advice ("Gives useful recommendations"). Include some that test the output format from `SKILL.md` ("Rates each finding with a severity level"). Avoid expectations that a competent agent without the skill would pass trivially; at least half of each case's expectations should require knowledge that is in the references.
+- **One claim per expectation.** The grader fails an expectation when any part of it is missing, so "Flags X and explains Y because Z" fails on Z alone. Split it, or drop the part that is not the point. Add a "because" clause only when the reason is what you are testing.
+- **Test what the answer contains.** Write "Walks the use case through the solution step by step", not "Recommends walking the use case through", unless telling the user to do it is the point; an answer that does the walk itself fails the second wording.
 - **2 near-miss cases** with `"should_trigger": false` and `"expectations": []`: prompts a user might send that look related but where this skill should not be consulted (adjacent domain, a pure definition question, or a task the skill's "When not to use" excludes). Give them the next ids after the normal cases.
 - `skill_name` equals `{{skill_name}}`. `id` values are unique integers.
 {{/if}}
@@ -138,7 +141,6 @@ Requirements:
 - Write only inside `{{output_dir}}`. Create the folders you need. Never modify anything under `books/`, `evals/` (library root) or other skills.
 - Use only `Read`, `Glob`, `Grep`, `Write`, `Edit`. There is no shell and no network.
 - No placeholders, TODOs, "see book", or lorem ipsum. No emojis.
-- Frontmatter `name` must equal `{{skill_name}}`, the folder name.
 
 ## Verify before finishing
 
@@ -147,7 +149,8 @@ Requirements:
 3. Confirm `SKILL.md` body is under 300 lines and has all eight sections.
 4. Confirm each reference file cites the source chapters and contains no long verbatim passages.
 {{#if with_evals}}
-5. Confirm `evals/evals.json` is valid JSON, has 6-8 normal cases plus 2 near-miss cases, and no expectation is vague.
+5. Confirm `evals/evals.json` is valid JSON, has 6-8 normal cases plus 2 near-miss cases, and no expectation is vague or compound.
+6. Check every expectation against your `SKILL.md`: an agent that follows the workflow, output format and severity rules must reach it. Where the skill would lead elsewhere (for example, it demands findings the expectation says a good input should not get), fix whichever of the two is wrong.
 {{/if}}
 
 Your final message: at most six lines: the skill name, the files written, the chapters it draws on most, and anything the book did not cover that the goal needed.

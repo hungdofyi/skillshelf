@@ -71,6 +71,7 @@ describe('summarize book job', () => {
     const prompt = app.calls()[0]!.prompt;
     expect(prompt).toContain('01-activation.md');
     expect(prompt).not.toContain('00-intro.md');
+    expect(prompt).toMatch(/\b1 of \d+ chapters to cover/);
     expect(prompt).not.toContain('Suggested reading path');
     expect(prompt).toContain('**Detailed.**');
     expect(prompt).toContain('## Key ideas across the book');

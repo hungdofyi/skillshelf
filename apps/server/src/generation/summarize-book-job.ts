@@ -100,7 +100,8 @@ export async function startSummarizeBook(ctx: AppContext, slug: string, body: un
       book_title: manifest.title,
       authors,
       book_slug: slug,
-      chapter_count: String(selected.length),
+      // "3 of 22" for a subset, so the summary can say which part of the book it leaves out.
+      chapter_count: selected.length < manifest.chapters.length ? `${selected.length} of ${manifest.chapters.length}` : String(selected.length),
       chapters_table: renderChapterTable(manifest, wanted),
       length,
       structure,
