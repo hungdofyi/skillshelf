@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "skillshelf": {
+      "command": "apps/server/node_modules/.bin/tsx",
+      "args": ["apps/server/src/mcp/mcp-stdio-entry.ts"]
+    }
+  }
+}

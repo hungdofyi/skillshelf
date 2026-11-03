@@ -1,0 +1,23 @@
+{
+  "name": "skillshelf",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Convert PDF/EPUB books into Markdown, then into Claude Agent Skills; preview, evaluate and serve them over MCP.",
+  "type": "module",
+  "packageManager": "pnpm@10.0.0",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "pnpm -r --parallel --filter @b2s/server --filter @b2s/web dev",
+    "build": "pnpm -r build",
+    "start": "pnpm --filter @b2s/web build && pnpm --filter @b2s/server start",
+    "test": "pnpm -r test && pnpm test:converter",
+    "test:converter": "uv run --project converter pytest converter/tests -q",
+    "typecheck": "pnpm -r typecheck",
+    "mcp:stdio": "pnpm --silent --filter @b2s/server mcp:stdio",
+    "bootstrap": "pnpm install && uv sync --project converter",
+    "dev:server": "pnpm --filter @b2s/server start",
+    "dev:web": "pnpm --filter @b2s/web dev"
+  }
+}

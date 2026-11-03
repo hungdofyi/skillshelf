@@ -1,0 +1,28 @@
+[project]
+name = "book-convert"
+version = "0.1.0"
+description = "Convert PDF/EPUB books into chapter Markdown plus a book.json manifest."
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "pymupdf4llm>=1.0",
+  "pymupdf",
+  "markdownify",
+  "beautifulsoup4",
+  "lxml",
+]
+
+[project.scripts]
+book-convert = "book_convert.cli:main"
+
+[dependency-groups]
+dev = ["pytest"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/book_convert"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

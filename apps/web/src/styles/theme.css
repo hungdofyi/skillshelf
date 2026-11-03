@@ -1,0 +1,280 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens. Warm-grey neutrals, one petrol accent, OKLCH throughout.
+ * Colours are light-dark() pairs so the theme toggle only flips `color-scheme`.
+ * Text tokens (fg, fg-muted, fg-faint) all pass WCAG AA (4.5:1) on every surface
+ * they sit on, in both themes. Dark borders are solid: alpha-white lines glow.
+ */
+:root {
+  color-scheme: light dark;
+  /* Surfaces. Chrome (rail, sidebars, tab bar, status bar) is --panel; documents are --surface;
+     menus and dialogs are --raised. In dark, closer surfaces are lighter. */
+  --bg: light-dark(oklch(0.965 0.005 80), oklch(0.18 0.006 70));
+  --panel: light-dark(oklch(0.958 0.006 80), oklch(0.2 0.006 70));
+  --surface: light-dark(oklch(0.993 0.003 80), oklch(0.225 0.006 70));
+  --raised: light-dark(oklch(0.997 0.002 80), oklch(0.265 0.006 70));
+  --raised-hover: light-dark(oklch(0.972 0.004 80), oklch(0.3 0.006 70));
+  --sunken: light-dark(oklch(0.945 0.006 80), oklch(0.17 0.006 70));
+  --hover: light-dark(oklch(0.24 0.01 70 / 0.055), oklch(0.95 0.01 80 / 0.065));
+  --active: light-dark(oklch(0.24 0.01 70 / 0.1), oklch(0.95 0.01 80 / 0.11));
+  --fg: light-dark(oklch(0.24 0.01 70), oklch(0.94 0.006 80));
+  --fg-muted: light-dark(oklch(0.46 0.01 70), oklch(0.78 0.008 75));
+  --fg-faint: light-dark(oklch(0.52 0.01 70), oklch(0.67 0.008 75));
+  --fg-disabled: light-dark(oklch(0.7 0.008 70), oklch(0.46 0.006 75));
+  --disabled-bg: light-dark(oklch(0.24 0.01 70 / 0.06), oklch(0.95 0.01 80 / 0.06));
+  --line: light-dark(oklch(0.24 0.01 70 / 0.1), oklch(0.29 0.006 70));
+  --line-strong: light-dark(oklch(0.24 0.01 70 / 0.18), oklch(0.36 0.006 70));
+  /* Accent: --accent for text, icons and indicators; --accent-solid for filled buttons. */
+  --accent: light-dark(oklch(0.48 0.085 215), oklch(0.76 0.065 210));
+  --accent-solid: light-dark(oklch(0.48 0.085 215), oklch(0.5 0.075 215));
+  --accent-solid-hover: light-dark(oklch(0.43 0.08 215), oklch(0.55 0.075 215));
+  --accent-fg: oklch(0.99 0.003 80);
+  --accent-soft: light-dark(oklch(0.935 0.025 215), oklch(0.3 0.035 215));
+  --ok: light-dark(oklch(0.48 0.11 150), oklch(0.76 0.12 150));
+  --ok-soft: light-dark(oklch(0.94 0.035 150), oklch(0.3 0.04 150));
+  --warn: light-dark(oklch(0.52 0.11 70), oklch(0.8 0.11 80));
+  --warn-soft: light-dark(oklch(0.945 0.04 80), oklch(0.31 0.04 80));
+  --danger: light-dark(oklch(0.52 0.16 28), oklch(0.74 0.13 25));
+  --danger-soft: light-dark(oklch(0.945 0.03 28), oklch(0.3 0.045 25));
+  --danger-solid: light-dark(oklch(0.53 0.17 28), oklch(0.52 0.14 25));
+  --danger-solid-hover: light-dark(oklch(0.48 0.16 28), oklch(0.57 0.14 25));
+  /* Focus rings stay neutral (emil-ui-polish): never the accent. */
+  --focus: light-dark(oklch(0.42 0.01 70), oklch(0.82 0.008 75));
+  --overlay: light-dark(oklch(0.2 0.01 70 / 0.28), oklch(0.08 0.005 70 / 0.55));
+  /* Elevation: layered shadows in light, a single white ring in dark. */
+  --elevation-pop: 0 0 0 1px oklch(0.2 0.01 70 / 0.08), 0 2px 4px oklch(0.2 0.01 70 / 0.06), 0 12px 32px -8px oklch(0.2 0.01 70 / 0.18);
+  --elevation-raised: 0 0 0 1px oklch(0.2 0.01 70 / 0.06), 0 1px 3px oklch(0.2 0.01 70 / 0.06);
+  /* Region separators are hairlines on high-density screens. */
+  --hairline: 1px;
+  /* Stacking scale: nothing uses an ad-hoc z-index. */
+  --z-raised: 10;
+  --z-overlay: 40;
+  --z-modal: 50;
+  --z-popover: 60;
+  --font-ui: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  /* Motion: one enter curve, one move curve, short durations. Exits are faster than entries. */
+  --ease-enter: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-move: cubic-bezier(0.645, 0.045, 0.355, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+}
+@media (min-resolution: 2dppx) {
+  :root { --hairline: 0.5px; }
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --elevation-pop: 0 0 0 1px oklch(1 0 0 / 0.1), 0 12px 32px -8px oklch(0 0 0 / 0.5);
+    --elevation-raised: 0 0 0 1px oklch(1 0 0 / 0.08);
+  }
+}
+:root[data-theme='light'] { color-scheme: light; }
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --elevation-pop: 0 0 0 1px oklch(1 0 0 / 0.1), 0 12px 32px -8px oklch(0 0 0 / 0.5);
+  --elevation-raised: 0 0 0 1px oklch(1 0 0 / 0.08);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-panel: var(--panel);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-raised-hover: var(--raised-hover);
+  --color-sunken: var(--sunken);
+  --color-hover: var(--hover);
+  --color-active: var(--active);
+  --color-fg: var(--fg);
+  --color-muted: var(--fg-muted);
+  --color-faint: var(--fg-faint);
+  --color-disabled: var(--fg-disabled);
+  --color-disabled-bg: var(--disabled-bg);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-accent-solid: var(--accent-solid);
+  --color-accent-solid-hover: var(--accent-solid-hover);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-solid: var(--danger-solid);
+  --color-danger-solid-hover: var(--danger-solid-hover);
+  --color-focus: var(--focus);
+  --color-overlay: var(--overlay);
+  --font-sans: var(--font-ui);
+  --shadow-pop: var(--elevation-pop);
+  --shadow-raised: var(--elevation-raised);
+}
+
+/* Type scale. Every size in the app comes from here; line-height inherits unless a role sets it. */
+@theme {
+  --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+  --font-read: Charter, 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --text-micro: 11px;
+  --text-caption: 12px;
+  --text-ui: 13px;
+  --text-body: 14px;
+  --text-title: 15px;
+  --text-heading: 20px;
+  --text-display: 28px;
+}
+
+/* Region separators (rail | sidebar | main | inspector, tab bar, status bar). */
+@utility hairline-t { border-top: var(--hairline) solid var(--line); }
+@utility hairline-b { border-bottom: var(--hairline) solid var(--line); }
+@utility hairline-r { border-right: var(--hairline) solid var(--line); }
+@utility hairline-l { border-left: var(--hairline) solid var(--line); }
+
+html, body, #root { height: 100%; }
+html { font-synthesis: none; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-ui);
+  font-size: var(--text-ui);
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow: hidden;
+}
+::selection { background: var(--accent-soft); }
+/* Thin scrollbars, thumb only: no track colour, no border. In the base layer so `no-scrollbar` can win. */
+@layer base {
+  * { scrollbar-width: thin; scrollbar-color: color-mix(in oklch, var(--fg) 22%, transparent) transparent; }
+}
+@supports not (scrollbar-color: auto) {
+  ::-webkit-scrollbar { width: 8px; height: 8px; background: transparent; }
+  ::-webkit-scrollbar-track, ::-webkit-scrollbar-corner { background: transparent; border: 0; }
+  ::-webkit-scrollbar-thumb { background: color-mix(in oklch, var(--fg) 22%, transparent); border: 0; border-radius: 4px; }
+}
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+/* In the base layer so Tailwind utilities (text-*, font-*) can override it. */
+@layer base {
+  button { font: inherit; color: inherit; }
+  button, a, input, select, textarea, [role='tab'], [role='treeitem'] { touch-action: manipulation; }
+}
+/* Base layer, so `outline-none` (menu items, which Radix focuses on hover) and `outline-offset-*` utilities win. */
+@layer base {
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+  input:focus-visible, textarea:focus-visible, select:focus-visible { outline-offset: 0; }
+}
+/* Fields stay at 13px for dense desktop use but go to 16px where iOS would zoom on focus. */
+@media (pointer: coarse) {
+  input, textarea, select { font-size: 16px; }
+}
+.tnum { font-variant-numeric: tabular-nums; }
+/* Images get a 1px inset edge: pure black or white at 10%, never a tinted neutral. */
+.img-outline { outline: 1px solid light-dark(oklch(0 0 0 / 0.1), oklch(1 0 0 / 0.1)); outline-offset: -1px; }
+
+/* Motion. Hover and colour at 150ms; press is scale 0.96 with an ease-out return. */
+.fx {
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease, opacity 150ms ease, box-shadow 150ms ease, scale 150ms var(--ease-enter);
+}
+.press:active:not(:disabled) { scale: 0.96; }
+@keyframes spin { to { rotate: 360deg; } }
+@keyframes indeterminate { 0% { translate: -100% 0; } 100% { translate: 250% 0; } }
+.spin { animation: spin 0.9s linear infinite; }
+
+/* Overlays. Dialog and its backdrop share duration and curve; exits are shorter. */
+@keyframes fade-in { from { opacity: 0; } }
+@keyframes fade-out { to { opacity: 0; } }
+@keyframes pop-in { from { opacity: 0; scale: 0.97; } }
+@keyframes pop-out { to { opacity: 0; scale: 0.97; } }
+@keyframes menu-in { from { opacity: 0; scale: 0.95; } }
+.anim-overlay[data-state='open'] { animation: fade-in 200ms var(--ease-enter); }
+.anim-overlay[data-state='closed'] { animation: fade-out 150ms var(--ease-exit); }
+.anim-dialog[data-state='open'] { animation: pop-in 200ms var(--ease-enter); }
+.anim-dialog[data-state='closed'] { animation: pop-out 150ms var(--ease-exit); }
+.anim-menu { transform-origin: var(--radix-dropdown-menu-content-transform-origin, var(--radix-context-menu-content-transform-origin, top)); }
+.anim-menu[data-state='open'] { animation: menu-in 150ms var(--ease-enter); }
+.anim-menu[data-state='closed'] { animation: fade-out 100ms var(--ease-exit); }
+/* Only the first tooltip in a run animates; siblings open instantly (Radix "instant-open"). */
+.anim-tooltip { transform-origin: var(--radix-tooltip-content-transform-origin, center); }
+.anim-tooltip[data-state='delayed-open'] { animation: pop-in 125ms var(--ease-enter); }
+.anim-fade { animation: fade-in 150ms var(--ease-enter); }
+
+/* Panels opened by pointer: content slides 8px from its own edge. Keyboard toggles skip this. */
+@keyframes in-from-left { from { opacity: 0; translate: -8px 0; } }
+@keyframes in-from-right { from { opacity: 0; translate: 8px 0; } }
+@keyframes in-from-below { from { opacity: 0; translate: 0 8px; } }
+.enter-from-left { animation: in-from-left 200ms var(--ease-enter); }
+.enter-from-right { animation: in-from-right 200ms var(--ease-enter); }
+.enter-from-below { animation: in-from-below 200ms var(--ease-enter); }
+
+/* Theme switches must not tween every colour on the page. */
+.no-transitions, .no-transitions * { transition: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+  .spin { animation: none; }
+}
+
+/* Resizable region separators: a hairline with an invisible 7px hit area. */
+[data-separator] { position: relative; background: var(--line); flex: none; transition: background-color 150ms ease; }
+[data-separator][aria-orientation='vertical'] { width: var(--hairline); cursor: col-resize; }
+[data-separator][aria-orientation='horizontal'] { height: var(--hairline); cursor: row-resize; }
+[data-separator]::after { content: ''; position: absolute; inset: -3px; }
+[data-separator][data-separator='hover'], [data-separator='active'] { background: var(--accent); }
+
+/* CodeMirror inherits the app tokens. */
+.cm-theme, .cm-editor { height: 100%; background: transparent !important; color: var(--fg); }
+.cm-editor.cm-focused { outline: none; }
+.cm-editor .cm-scroller { font-family: var(--font-mono); font-size: 12.5px; line-height: 1.6; }
+.cm-editor .cm-gutters { background: transparent; border: 0; color: var(--fg-faint); }
+.cm-editor .cm-activeLine, .cm-editor .cm-activeLineGutter { background: var(--hover); }
+.cm-editor .cm-selectionBackground, .cm-editor.cm-focused .cm-selectionBackground { background: var(--accent-soft) !important; }
+.cm-editor .cm-cursor { border-left-color: var(--fg); }
+.cm-editor .cm-content { padding: 12px 0; caret-color: var(--fg); }
+
+/* Markdown reading face. Book text and its headings are set in the reading serif. */
+.prose-b2s { font-family: var(--font-read); font-size: 16px; line-height: 1.7; max-width: 68ch; color: var(--fg); text-wrap: pretty; }
+.prose-b2s > :first-child { margin-top: 0; }
+.prose-b2s h1, .prose-b2s h2, .prose-b2s h3, .prose-b2s h4 { font-weight: 700; line-height: 1.2; text-wrap: balance; scroll-margin-top: 16px; position: relative; }
+.prose-b2s h1 { font-size: 1.85rem; margin: 2rem 0 0.75rem; letter-spacing: -0.01em; }
+.prose-b2s h2 { font-size: 1.35rem; margin: 2.2rem 0 0.6rem; padding-top: 0.4rem; }
+.prose-b2s h3 { font-size: 1.1rem; margin: 1.7rem 0 0.4rem; }
+.prose-b2s h4 { font-size: 1rem; margin: 1.4rem 0 0.3rem; color: var(--fg-muted); }
+.prose-b2s p, .prose-b2s ul, .prose-b2s ol, .prose-b2s pre, .prose-b2s table, .prose-b2s blockquote { margin: 0 0 1em; }
+.prose-b2s ul { list-style: disc; padding-left: 1.4em; }
+.prose-b2s ol { list-style: decimal; padding-left: 1.5em; }
+.prose-b2s li { margin: 0.25em 0; }
+.prose-b2s li::marker { color: var(--fg-faint); }
+.prose-b2s a { color: var(--accent); text-decoration: underline; text-decoration-color: color-mix(in oklab, var(--accent) 40%, transparent); text-decoration-thickness: from-font; text-underline-offset: 2px; }
+@media (hover: hover) and (pointer: fine) { .prose-b2s a:hover { text-decoration-color: currentColor; } }
+.prose-b2s blockquote { border-left: 2px solid var(--line-strong); padding: 0 0 0 1em; color: var(--fg-muted); }
+.prose-b2s hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
+/* Chapter label ("—— CHAPTER 9 ——" in the source): hairlines either side of a small tracked label.
+   UI face, not Charter: the label is wayfinding, and Charter has no real small caps to fall back on. */
+.prose-b2s .chapter-label { display: flex; align-items: center; gap: 0.875rem; margin: 2.5rem 0 1rem; font-family: var(--font-ui); font-size: var(--text-caption); font-weight: 500; line-height: 1; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted); font-variant-numeric: tabular-nums; }
+.prose-b2s .chapter-label::before, .prose-b2s .chapter-label::after { content: ''; flex: 1; border-top: var(--hairline) solid var(--line-strong); }
+.prose-b2s .chapter-label + h1 { margin-top: 0; }
+.prose-b2s code { font-family: var(--font-mono); font-size: 0.84em; background: var(--hover); padding: 0.12em 0.35em; border-radius: 4px; }
+.prose-b2s pre { background: var(--sunken); border-radius: 8px; padding: 12px 14px; overflow-x: auto; font-size: 12.5px; line-height: 1.6; }
+.prose-b2s pre code { background: none; padding: 0; font-size: inherit; }
+.prose-b2s img { max-width: 100%; border-radius: 6px; outline: 1px solid light-dark(oklch(0 0 0 / 0.1), oklch(1 0 0 / 0.1)); outline-offset: -1px; }
+.prose-b2s table { border-collapse: collapse; font-family: var(--font-ui); font-size: var(--text-ui); display: block; overflow-x: auto; max-width: 100%; }
+.prose-b2s th, .prose-b2s td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; vertical-align: top; }
+.prose-b2s th { background: var(--panel); font-weight: 600; }
+.prose-b2s h2 .anchor, .prose-b2s h3 .anchor { position: absolute; left: -1.1em; color: var(--fg-faint); opacity: 0; text-decoration: none; font-weight: 400; }
+.prose-b2s .anchor:focus-visible { opacity: 1; }
+@media (hover: hover) and (pointer: fine) { .prose-b2s h2:hover .anchor, .prose-b2s h3:hover .anchor { opacity: 1; } }
+.prose-compact { font-size: 14px; line-height: 1.6; }
+
+/* highlight.js tokens mapped to app colours. */
+.hljs { color: var(--fg); }
+.hljs-comment, .hljs-quote { color: var(--fg-faint); font-style: italic; }
+.hljs-keyword, .hljs-selector-tag, .hljs-literal, .hljs-built_in { color: var(--accent); }
+.hljs-string, .hljs-regexp, .hljs-addition { color: var(--ok); }
+.hljs-number, .hljs-symbol, .hljs-bullet, .hljs-attr, .hljs-attribute { color: var(--warn); }
+.hljs-title, .hljs-section, .hljs-name, .hljs-type { color: var(--fg); font-weight: 600; }
+.hljs-deletion { color: var(--danger); }
+.hljs-meta, .hljs-variable, .hljs-template-variable { color: var(--fg-muted); }

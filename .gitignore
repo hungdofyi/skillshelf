@@ -1,0 +1,39 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+.env
+.env.local
+
+# Runtime state: job logs, MCP token, tunnel state
+.data/
+
+# Python
+converter/.venv/
+__pycache__/
+.pytest_cache/
+
+# Original book files are large and copyrighted; keep them out of git.
+library/books/*/source/
+# Converted book text is copyrighted too: keep it local. Skills (paraphrased, cited) stay tracked.
+library/books/*/markdown/
+library/books/*/assets/
+
+# Eval transcripts hold full tool outputs; results (run.json, answer.md) stay tracked.
+library/evals/**/transcript.jsonl
+library/evals/**/judge-transcript.jsonl
+
+# Internal working files (kept locally, not published)
+plans/
+.claude/
+docs/system-architecture.md
+docs/design-guidelines.md
+
+# Your library is personal (copyrighted books, derived skills, eval runs). Keep only the folder skeleton.
+library/books/*
+library/skills/*
+library/evals/*
+!library/books/.gitkeep
+!library/skills/.gitkeep
+!library/evals/.gitkeep
+
