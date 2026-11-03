@@ -56,6 +56,13 @@ describe('book routes', () => {
     await Promise.all([a, b, c].map((r) => waitJob(t, r.job.id)));
   });
 
+  it('keeps a long book title whole in the folder name instead of cutting it mid-word', async () => {
+    const title = 'product-led-onboarding-how-to-turn-new-users-into-lifelong-customers-and-advocates';
+    const r = (await (await upload('long.epub', epubBytes(), title)).json()) as { book: BookSummary; job: Job };
+    expect(r.book.slug).toBe(title);
+    await waitJob(t, r.job.id);
+  });
+
   it('accepts an EPUB whose mimetype entry has an extra field', async () => {
     expect((await upload('mac.epub', epubBytesWithExtraField())).status).toBe(200);
   });

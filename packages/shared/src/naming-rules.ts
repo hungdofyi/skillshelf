@@ -8,6 +8,8 @@ export const SKILL_BODY_LINES_SOFT_MAX = 500;
 export const SKILL_RESERVED_WORDS = ['anthropic', 'claude'] as const;
 
 export const BOOK_SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+/** Book folders keep long titles whole (skill names stay at 64 per the spec); well under filesystem name limits. */
+export const BOOK_SLUG_MAX = 120;
 
 /** "The Art of War: Sun Tzu" -> "the-art-of-war-sun-tzu" (ASCII, max 64 chars). */
 export function slugify(input: string, max = 64): string {

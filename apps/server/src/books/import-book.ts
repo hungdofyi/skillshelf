@@ -3,7 +3,7 @@ import { createWriteStream, existsSync, mkdirSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
-import { slugify } from '@b2s/shared';
+import { BOOK_SLUG_MAX, slugify } from '@b2s/shared';
 import { HttpError } from '../http-error.js';
 
 export const MAX_BOOK_BYTES = 300 * 1024 * 1024;
@@ -32,10 +32,10 @@ export async function detectBookFormat(file: File): Promise<UploadFormat> {
 
 /** First free slug: base, base-2, base-3 … */
 export function uniqueSlug(booksDir: string, wanted: string): string {
-  const base = slugify(wanted);
+  const base = slugify(wanted, BOOK_SLUG_MAX);
   let slug = base;
   for (let n = 2; existsSync(path.join(booksDir, slug)); n++) {
-    slug = `${base.slice(0, 60)}-${n}`;
+    slug = `${base.slice(0, BOOK_SLUG_MAX - 6)}-${n}`;
   }
   return slug;
 }
